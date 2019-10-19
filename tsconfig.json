@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./*"],
+      "~~/*": ["./*"],
+      "@@/*": ["./*"]
+    },
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "esnext",
+    "strict": true,
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules", ".nuxt", "dist"]
+}
