@@ -1,12 +1,15 @@
 import express from 'express'
 import consola from 'consola'
+import config from '../nuxt.config'
+import Api from './api'
 const { Nuxt, Builder } = require('nuxt')
 
 const app = express()
 
 // Import and Set Nuxt.js options
-const config = require('../nuxt.config.ts')
 config.dev = process.env.NODE_ENV !== 'production'
+
+export { app }
 
 async function start() {
   // Init Nuxt.js
@@ -22,9 +25,7 @@ async function start() {
     await nuxt.ready()
   }
 
-  app.get('/api', (req, res) => {
-    res.send('Hello QWQUIVER API')
-  })
+  app.use('/api', Api)
 
   // Give nuxt middleware to express
   app.use(nuxt.render)

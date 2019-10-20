@@ -25,7 +25,11 @@ const config: Configuration = {
   /*
    ** Global CSS
    */
-  css: [],
+  css: [
+    'normalize.css',
+    '@/assets/css/main.css',
+    'material-design-iconic-font/dist/css/material-design-iconic-font.min.css'
+  ],
   /*
    ** Plugins to load before mounting the App
    */
