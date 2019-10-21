@@ -2,6 +2,7 @@ import express from 'express'
 import consola from 'consola'
 import config from '../nuxt.config'
 import Api from './api'
+import Database from './database'
 const { Nuxt, Builder } = require('nuxt')
 
 const app = express()
@@ -12,6 +13,9 @@ config.dev = process.env.NODE_ENV !== 'production'
 export { app }
 
 async function start() {
+  // Init database
+  Database.init()
+
   // Init Nuxt.js
   const nuxt = new Nuxt(config)
 
