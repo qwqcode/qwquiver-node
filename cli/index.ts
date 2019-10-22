@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import _ from 'lodash'
 import * as XLSX from 'xlsx'
 import { ArgumentParser } from 'argparse'
@@ -44,8 +45,14 @@ const args = parser.parseArgs()
 console.dir(args)
 
 if (args.action === 'import' && !!args.fileName) {
+  const dbFilename = path.join(DB_SCORES_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db')
+  if (fs.existsSync(dbFilename)) {
+    console.error(`[ERROR] Excel data has imported before. \nif you want to import again, please delete it first.\n"${dbFilename}"`)
+    process.exit(0)
+  }
+
   const db = new DataStore({
-    filename: path.join(DB_SCORES_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db'),
+    filename: dbFilename,
     autoload: true
   })
 
