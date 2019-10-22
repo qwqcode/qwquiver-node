@@ -1,9 +1,10 @@
 import path from 'path'
-import Excel from 'exceljs'
+import _ from 'lodash'
+import * as XLSX from 'xlsx'
 import { ArgumentParser } from 'argparse'
 import DataStore from 'nedb'
 import Database, { DB_SCORES_PATH } from '../server/database'
-import { FieldLabels } from '../server/database/fields'
+import { FieldNames, FieldLabels } from '../server/database/fields'
 
 const parser = new ArgumentParser({
   description: `QWQUIVER v${process.env.npm_package_version} Command Line Interface`,
@@ -30,7 +31,8 @@ const configBar = subparsers.addParser('config', {
 
 const importBar = subparsers.addParser('import', {
   help: '导入',
-  addHelp: true
+  addHelp: true,
+  description: '表头需设定字段名: ' + _.trimEnd(Object.keys(FieldLabels).join(', '), ', ')
 })
 importBar.addArgument('fileName', {
   action: 'store',
@@ -41,25 +43,33 @@ importBar.addArgument('fileName', {
 const args = parser.parseArgs()
 console.dir(args)
 
-Object.keys(FieldLabels).forEach((o) => {
-  console.log(o)
-})
-
 if (args.action === 'import' && !!args.fileName) {
   const db = new DataStore({
     filename: path.join(DB_SCORES_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db'),
     autoload: true
   })
 
-  const tableHeadRowPos = 1
-  const workbook = new Excel.Workbook()
+  const theadRowIndex = 0
+  const wb: XLSX.WorkBook = XLSX.readFile(args.fileName)
+  const data: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })
+  const filedPos: { [key: string]: number } = {}
 
-  workbook.xlsx.readFile(args.fileName).then((w) => {
-    w.getWorksheet(1)
-      .getRow(tableHeadRowPos)
-      .eachCell((cell, colNumber) => {
-        console.dir(cell.text)
-        db.insert({ text: cell.text })
-      })
+  // 读取表头
+  data[theadRowIndex].forEach((colVal: string, pos: number) => {
+    Object.keys(FieldNames).forEach(name => {
+      if (colVal === name) {
+        filedPos[name] = pos
+      }
+    })
+  })
+
+  // 读取数据
+  data.forEach((rowValues, rowIndex) => {
+    if (rowIndex === 0) return
+    const dataItem: { [key: string]: string } = {}
+    _.forEach(filedPos, (pos: number, filedName: string) => {
+      dataItem[filedName] = rowValues[pos]
+    })
+    db.insert(dataItem)
   })
 }
