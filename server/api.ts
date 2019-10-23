@@ -13,6 +13,21 @@ function sendError (res: Response, msg?: string, data?: Object) {
   return res.send({ success: false, msg, data })
 }
 
+function getPaginatedItems (items: any[], page: number, pageSize: number) {
+  const pg = page || 1
+  const pgSize = pageSize || 100
+  const offset = (pg - 1) * pgSize
+  const pagedItems = _.drop(items, offset).slice(0, pgSize)
+
+  return {
+    page: pg,
+    pageSize: pgSize,
+    total: items.length,
+    lastPage: Math.ceil(items.length / pgSize),
+    data: pagedItems
+  }
+}
+
 router.get('/', (req: Request, res: Response) => {
   res.send('Hello, World!')
 })
@@ -23,10 +38,9 @@ router.get('/query', (req: Request, res: Response) => {
     type,
     data: queryData,
     where: whereJsonStr,
-    page,
-    pagePer,
-    sortBy,
-    sortType,
+    page: pageStr,
+    pagePer: pagePerStr,
+    sort: sortJsonStr
   } = req.query
 
   if (!dbName) {
@@ -42,18 +56,23 @@ router.get('/query', (req: Request, res: Response) => {
   const db = dbList[dbName]
 
   let conditionList: { [key: string]: string } = {}
-  if (whereJsonStr) {
-    try {
-      conditionList = JSON.parse(whereJsonStr)
-    } catch {
-      sendError(res, `where 参数 JSON 解析错误`)
-      return
-    }
+  let sortList: { [key: string]: 1|-1 } = {}
+
+  try {
+      if (whereJsonStr) conditionList = JSON.parse(whereJsonStr)
+      if (sortJsonStr) sortList = JSON.parse(sortJsonStr)
+  } catch {
+    sendError(res, `参数 JSON 解析错误`)
+    return
   }
+
   if (queryData)
     conditionList[FieldNames.NAME] = queryData
 
-  db.find(conditionList, (err: Error, rawData: any[]) => {
+  const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
+  const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
+
+  db.find(conditionList).sort(sortList).exec((err: Error, rawData) => {
     const scoreDbData: ScoreDataItem[] = []
     rawData.forEach((rawItem) => {
       const item: any = {}
@@ -66,7 +85,7 @@ router.get('/query', (req: Request, res: Response) => {
     if (err) {
       sendError(res, `数据获取错误 ${err.message}`)
     }
-    sendSuccess(res, '数据获取成功', { scoreDbData })
+    sendSuccess(res, '数据获取成功', { ...getPaginatedItems(scoreDbData, page, pagePer) })
   })
 })
 
