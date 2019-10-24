@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx'
 import { ArgumentParser } from 'argparse'
 import DataStore from 'nedb'
 import Database, { DB_SCORES_PATH } from '../server/database'
-import { FieldNames, FieldLabels } from '../server/database/fields'
+import { FN, FL, ScoreDataItem, FL_SUBJECTS, FL_ZK_SUBJECTS, FL_LZ_SUBJECTS, FL_WZ_SUBJECTS } from '../server/database/fields'
 
 const parser = new ArgumentParser({
   description: `QWQUIVER v${process.env.npm_package_version} Command Line Interface`,
@@ -33,7 +33,7 @@ const configBar = subparsers.addParser('config', {
 const importBar = subparsers.addParser('import', {
   help: '导入',
   addHelp: true,
-  description: '表头需设定字段名: ' + _.trimEnd(Object.keys(FieldLabels).join(', '), ', ')
+  description: '表头需设定字段名: ' + _.trimEnd(Object.keys(FL).join(', '), ', ')
 })
 importBar.addArgument('fileName', {
   action: 'store',
@@ -58,25 +58,89 @@ if (args.action === 'import' && !!args.fileName) {
 
   const theadRowIndex = 0
   const wb: XLSX.WorkBook = XLSX.readFile(args.fileName)
-  const data: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })
-  const filedPos: { [key: string]: number } = {}
+  const xlsData: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })
+  const xlsFieldPos: { [key: string]: number } = {}
+  const xlsFieldNames: string[] = []
 
   // 读取表头
-  data[theadRowIndex].forEach((colVal: string, pos: number) => {
-    Object.keys(FieldNames).forEach(name => {
+  xlsData[theadRowIndex].forEach((colVal: string, pos: number) => {
+    Object.keys(FN).forEach(name => {
       if (colVal === name) {
-        filedPos[name] = pos
+        xlsFieldPos[name] = pos
+        xlsFieldNames.push(name)
       }
     })
   })
 
   // 读取数据
-  data.forEach((rowValues, rowIndex) => {
+  let dbData: ScoreDataItem[] = []
+  xlsData.forEach((rowValues, rowIndex) => {
     if (rowIndex === 0) return
-    const dataItem: { [key: string]: string } = {}
-    _.forEach(filedPos, (pos: number, filedName: string) => {
-      dataItem[filedName] = rowValues[pos]
+    const dataItem: any = {}
+    _.forEach(xlsFieldPos, (pos: number, filedName: string) => {
+      dataItem[filedName] = rowValues[pos] || null
     })
-    db.insert(dataItem)
+    dbData.push(dataItem)
+  })
+
+  // 总分 & 排名
+  const setDataSumFieldValue = (dataFields: string[], targetField: FN) => {
+    if (!dataFields || dataFields.length <= 0) return
+    _.forEach(dbData, (item) => {
+      let scoreSum = 0
+      dataFields.forEach((fieldName) => {
+        if (xlsFieldNames.includes(fieldName)) {
+          scoreSum += (Number((item as any)[fieldName]) || 0)
+        }
+      });
+      (item as any)[targetField] = scoreSum
+    })
+  }
+  setDataSumFieldValue(FL_SUBJECTS, FN.SCORED)
+
+  // 总分从大到小排序
+  dbData = _.sortBy(dbData, o => -o.SCORED)
+
+  // RANK
+  let tRank = 1
+  let tScored = -1
+  let tSameNum = 1
+  _.forEach(dbData, (item) => {
+    if (tScored === -1) {
+      // 最高分初始化
+      tScored = item.SCORED
+      item.RANK = tRank
+      return
+    }
+
+    if (item.SCORED < tScored) {
+      tRank = tRank + tSameNum
+      tScored = item.SCORED
+      tSameNum = 1
+    } else {
+      tSameNum++
+    }
+    item.RANK = tRank
+  })
+
+  // 文科 & 理科 & 理综 & 文综
+  const dataZkSubjects = _.intersection(xlsFieldNames, FL_ZK_SUBJECTS)
+  const dataLzSubjects = _.intersection(xlsFieldNames, FL_LZ_SUBJECTS)
+  const dataWzSubjects = _.intersection(xlsFieldNames, FL_WZ_SUBJECTS)
+  if (dataZkSubjects.length > 0) {
+    setDataSumFieldValue(dataZkSubjects, FN.ZK)
+  }
+  if (dataLzSubjects.length > 0) {
+    setDataSumFieldValue(dataLzSubjects, FN.LZ)
+    setDataSumFieldValue(_.union(dataLzSubjects, dataZkSubjects), FN.LK)
+  }
+  if (dataWzSubjects.length > 0) {
+    setDataSumFieldValue(dataWzSubjects, FN.WZ)
+    setDataSumFieldValue(_.union(dataWzSubjects, dataZkSubjects), FN.WK)
+  }
+
+  // 导入数据到数据库
+  dbData.forEach((item) => {
+    db.insert(item)
   })
 }

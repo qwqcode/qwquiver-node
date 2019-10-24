@@ -1,7 +1,7 @@
 {
   "name": "qwquiver",
   "version": "0.0.1",
-  "description": "A website for browsing, ranking, statistic, and analyzing grades.",
+  "description": "A website for exploring and analyzing exam results.",
   "author": "qwqcode",
   "private": true,
   "scripts": {
@@ -23,6 +23,7 @@
     "nedb": "^1.8.0",
     "normalize.css": "^8.0.1",
     "nuxt": "^2.0.0",
+    "nuxt-property-decorator": "^2.5.0",
     "ts-node": "^8.4.1",
     "xlsx": "^0.15.1"
   },
@@ -42,7 +43,9 @@
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-nuxt": ">=0.4.2",
     "eslint-plugin-prettier": "^3.0.1",
+    "node-sass": "^4.12.0",
     "nodemon": "^1.18.9",
-    "prettier": "^1.16.4"
+    "prettier": "^1.16.4",
+    "sass-loader": "^8.0.0"
   }
 }

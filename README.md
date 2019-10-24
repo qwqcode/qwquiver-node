@@ -1,6 +1,6 @@
 # qwquiver
 
-> A website for browsing, ranking, statistic, and analyzing grades.
+> A website for exploring and analyzing exam results.
 
 ## Build Setup
 

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { Router, Request, Response } from 'express'
 import Database from './database'
-import { FieldNames, ScoreDataItem } from './database/fields'
+import { FN, ScoreDataItem } from './database/fields'
 
 const router: Router = Router()
 
@@ -67,7 +67,7 @@ router.get('/query', (req: Request, res: Response) => {
   }
 
   if (queryData)
-    conditionList[FieldNames.NAME] = queryData
+    conditionList[FN.NAME] = queryData
 
   const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
@@ -76,7 +76,7 @@ router.get('/query', (req: Request, res: Response) => {
     const scoreDbData: ScoreDataItem[] = []
     rawData.forEach((rawItem) => {
       const item: any = {}
-      Object.values(FieldNames).forEach((fieldName) => {
+      Object.values(FN).forEach((fieldName) => {
         if (rawItem[fieldName] !== undefined) item[fieldName] = rawItem[fieldName]
       })
       scoreDbData.push(item)
