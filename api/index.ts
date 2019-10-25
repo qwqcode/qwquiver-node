@@ -1,9 +1,14 @@
+import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
-import { Router, Request, Response } from 'express'
 import Database from './database'
 import { FN, ScoreDataItem } from './database/fields'
 
+// Create express instnace
+const app = express()
+
 const router: Router = Router()
+
+Database.init()
 
 function sendSuccess (res: Response, msg?: string, data?: Object) {
   return res.send({ success: true, msg, data })
@@ -90,4 +95,11 @@ router.get('/query', (req: Request, res: Response) => {
 })
 
 const Api: Router = router
-export default Api
+
+app.use(Api)
+
+// Export the server middleware
+export default {
+  path: '/api',
+  handler: app
+}

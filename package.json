@@ -5,14 +5,14 @@
   "author": "qwqcode",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon server/index.ts --watch server",
-    "build": "nuxt build",
-    "start": "cross-env NODE_ENV=production ts-node server/index.ts",
-    "generate": "nuxt generate",
+    "dev": "nuxt-ts",
+    "build": "nuxt-ts build",
+    "start": "nuxt-ts build && nuxt-ts start",
     "lint": "eslint --ext .ts,.js,.vue --ignore-path .gitignore .",
-    "cli": "ts-node cli/index.ts"
+    "cli": "ts-node --project tsconfig.cli.json cli/index.ts"
   },
   "dependencies": {
+    "@nuxt/typescript-runtime": "^0.2.2",
     "@nuxtjs/axios": "^5.3.6",
     "argparse": "^1.0.10",
     "cross-env": "^5.2.0",
@@ -30,6 +30,7 @@
   "devDependencies": {
     "@nuxt/types": "^0.3.2",
     "@nuxt/typescript": "^2.8.1",
+    "@nuxt/typescript-build": "^0.3.2",
     "@nuxtjs/eslint-config": "^1.0.1",
     "@nuxtjs/eslint-config-typescript": "^0.1.3",
     "@nuxtjs/eslint-module": "^1.0.0",
@@ -44,7 +45,6 @@
     "eslint-plugin-nuxt": ">=0.4.2",
     "eslint-plugin-prettier": "^3.0.1",
     "node-sass": "^4.12.0",
-    "nodemon": "^1.18.9",
     "prettier": "^1.16.4",
     "sass-loader": "^8.0.0"
   }

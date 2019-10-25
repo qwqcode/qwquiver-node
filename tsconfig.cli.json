@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
       "~/*": ["./*"],
       "@/*": ["./*"],
@@ -10,22 +10,13 @@
     "outDir": "./dist/",
     "sourceMap": true,
     "noImplicitAny": true,
-    "target": "esnext",
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
+    "target": "esnext",
     "strict": true,
     "allowJs": true,
     "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "lib": [
-      "esnext",
-      "esnext.asynciterable",
-      "dom"
-    ],
-    "types": [
-      "@types/node",
-      "@nuxt/types"
-    ]
+    "esModuleInterop": true
   },
   "exclude": ["node_modules", ".nuxt", "dist"]
 }

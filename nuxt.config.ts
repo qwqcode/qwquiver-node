@@ -39,6 +39,7 @@ const config: Configuration = {
    */
   buildModules: [
     // Doc: https://github.com/nuxt-community/eslint-module
+    '@nuxt/typescript-build',
     '@nuxtjs/eslint-module'
   ],
   /*
@@ -61,7 +62,11 @@ const config: Configuration = {
      ** You can extend webpack config here
      */
     extend(config, ctx) {}
-  }
+  },
+  serverMiddleware: [
+    // API middleware
+    '~/api/index.ts'
+  ]
 }
 
 export default config

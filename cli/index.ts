@@ -4,8 +4,8 @@ import _ from 'lodash'
 import * as XLSX from 'xlsx'
 import { ArgumentParser } from 'argparse'
 import DataStore from 'nedb'
-import Database, { DB_SCORES_PATH } from '../server/database'
-import { FN, FL, ScoreDataItem, FL_SUBJECTS, FL_ZK_SUBJECTS, FL_LZ_SUBJECTS, FL_WZ_SUBJECTS } from '../server/database/fields'
+import Database, { DB_SCORES_PATH } from '../api/database'
+import { FN, FL, ScoreDataItem, FL_SUBJECTS, FL_ZK_SUBJECTS, FL_LZ_SUBJECTS, FL_WZ_SUBJECTS } from '../api/database/fields'
 
 const parser = new ArgumentParser({
   description: `QWQUIVER v${process.env.npm_package_version} Command Line Interface`,
