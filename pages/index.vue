@@ -41,19 +41,34 @@
           </div>
         </div>
         <div class="card-block" style="padding: 0;">
-          <ScoreTable />
+          <ScoreTable :data="scoreTableData" />
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import ScoreTable from '@/components/ScoreTable'
+<script lang="ts">
+import { Vue, Component } from 'nuxt-property-decorator'
+import axios from '@nuxtjs/axios'
+import F, { ScoreData } from '../api/interfaces/field'
+import ScoreTable from '@/components/ScoreTable.vue'
 
-export default {
-  components: {
-    ScoreTable
+@Component({
+  components: { ScoreTable }
+})
+export default class IndexPage extends Vue {
+  scoreTableData: ScoreData[] = []
+
+  created () {
+    this.fetchScoreTableData()
+  }
+
+  async fetchScoreTableData () {
+    const data = await this.$axios.$get('./api/query?db=test&page=10&pagePer=50')
+    if (data.success) {
+      this.scoreTableData = data.data
+    }
   }
 }
 </script>

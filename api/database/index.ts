@@ -1,32 +1,68 @@
 import path from 'path'
 import fs from 'fs'
+import _ from 'lodash'
 import DataStore from 'nedb'
+import F, { ScoreData } from '../interfaces/field'
+import ScoreDbInfo from '../interfaces/ScoreDbInfo'
 
-const DB_BASE_PATH = path.join(__dirname, '../../storage/database')
-const DB_SCORES_PATH = path.join(DB_BASE_PATH, 'scores')
-export { DB_BASE_PATH, DB_SCORES_PATH }
+export const DB_BASE_PATH = path.join(__dirname, '../../storage/database')
+export const SCORE_DB_PATH = path.join(DB_BASE_PATH, 'scores')
+export const SCORE_DB_INFO_PATH = path.join(SCORE_DB_PATH, './__info.json')
 
-const scoreDbList: { [dbName: string]: DataStore<any> } = {}
+const scoreDbList: { [dbName: string]: DataStore<ScoreData> } = {}
+let scoreDbInfoList: { [dbName: string]: ScoreDbInfo } = {}
 
 function loadScoreDbList () {
+  fs.readdirSync(SCORE_DB_PATH).filter(o => /\.db$/.test(o)).forEach(fileName => {
+    const dbName = fileName.replace(/(\.\/|\.db)/g,'')
+    scoreDbList[dbName] = new DataStore({ filename: path.join(SCORE_DB_PATH, fileName), autoload: true })
+  })
+}
 
-  if (!fs.existsSync(DB_SCORES_PATH)) {
-    fs.mkdirSync(DB_SCORES_PATH, { recursive: true })
+function loadScoreDbInfo () {
+  if (!fs.existsSync(SCORE_DB_INFO_PATH)) {
+    makeNewScoreDbList()
+    return
   }
 
-  fs.readdirSync(DB_SCORES_PATH).filter(o => /\.db$/.test(o)).forEach(fileName => {
-    const dbName = fileName.replace(/(\.\/|\.db)/g,'')
-    scoreDbList[dbName] = new DataStore({ filename: path.join(DB_SCORES_PATH, fileName), autoload: true })
+  const fileContent = fs.readFileSync(SCORE_DB_INFO_PATH, 'utf-8')
+  if (fileContent) {
+    try {
+      scoreDbInfoList = JSON.parse(fileContent)
+    } catch {
+      scoreDbInfoList = {}
+    }
+  }
+}
+
+export function makeNewScoreDbList () {
+  _.forEach(scoreDbList, (db, dbName) => {
+    const info: ScoreDbInfo = {
+      label: dbName
+    }
+
+    scoreDbInfoList[dbName] = info
   })
+
+  fs.writeFileSync(SCORE_DB_INFO_PATH, JSON.stringify(scoreDbInfoList, null, '  '), 'utf8')
 }
 
 const Database = {
   init () {
+    if (!fs.existsSync(SCORE_DB_PATH)) {
+      fs.mkdirSync(SCORE_DB_PATH, { recursive: true })
+    }
+
     loadScoreDbList()
+    loadScoreDbInfo()
   },
 
-  getScoreDbList () {
-    return scoreDbList
+  getScoreDb (dbName: string) {
+    return (typeof scoreDbList[dbName] !== 'undefined') ? scoreDbList[dbName] : undefined
+  },
+
+  getScoreDbInfoList () {
+    return scoreDbInfoList
   }
 }
 

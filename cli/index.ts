@@ -4,8 +4,10 @@ import _ from 'lodash'
 import * as XLSX from 'xlsx'
 import { ArgumentParser } from 'argparse'
 import DataStore from 'nedb'
-import Database, { DB_SCORES_PATH } from '../api/database'
-import { FN, FL, ScoreDataItem, FL_SUBJECTS, FL_ZK_SUBJECTS, FL_LZ_SUBJECTS, FL_WZ_SUBJECTS } from '../api/database/fields'
+import Database, { SCORE_DB_PATH } from '../api/database'
+import F, { ScoreData } from '../api/interfaces/field'
+import { transDict as FT } from '../api/interfaces/field/FieldTrans'
+import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../api/interfaces/field/FieldGrp'
 
 const parser = new ArgumentParser({
   description: `QWQUIVER v${process.env.npm_package_version} Command Line Interface`,
@@ -33,7 +35,7 @@ const configBar = subparsers.addParser('config', {
 const importBar = subparsers.addParser('import', {
   help: '导入',
   addHelp: true,
-  description: '表头需设定字段名: ' + _.trimEnd(Object.keys(FL).join(', '), ', ')
+  description: '表头需设定字段名: ' + _.trimEnd(Object.keys(FT).join(', '), ', ')
 })
 importBar.addArgument('fileName', {
   action: 'store',
@@ -45,7 +47,7 @@ const args = parser.parseArgs()
 console.dir(args)
 
 if (args.action === 'import' && !!args.fileName) {
-  const dbFilename = path.join(DB_SCORES_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db')
+  const dbFilename = path.join(SCORE_DB_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db')
   if (fs.existsSync(dbFilename)) {
     console.error(`[ERROR] Excel data has imported before. \nif you want to import again, please delete it first.\n"${dbFilename}"`)
     process.exit(0)
@@ -64,16 +66,16 @@ if (args.action === 'import' && !!args.fileName) {
 
   // 读取表头
   xlsData[theadRowIndex].forEach((colVal: string, pos: number) => {
-    Object.keys(FN).forEach(name => {
-      if (colVal === name) {
-        xlsFieldPos[name] = pos
-        xlsFieldNames.push(name)
+    F_ALL.forEach((fieldName) => {
+      if (colVal === fieldName) {
+        xlsFieldPos[fieldName] = pos
+        xlsFieldNames.push(fieldName)
       }
     })
   })
 
   // 读取数据
-  let dbData: ScoreDataItem[] = []
+  let dbData: ScoreData[] = []
   xlsData.forEach((rowValues, rowIndex) => {
     if (rowIndex === 0) return
     const dataItem: any = {}
@@ -84,11 +86,11 @@ if (args.action === 'import' && !!args.fileName) {
   })
 
   // 总分 & 排名
-  const setDataSumFieldValue = (dataFields: string[], targetField: FN) => {
+  const setDataSumFieldValue = (dataFields: F[], targetField: F) => {
     if (!dataFields || dataFields.length <= 0) return
     _.forEach(dbData, (item) => {
       let scoreSum = 0
-      dataFields.forEach((fieldName) => {
+      dataFields.forEach((fieldName: string) => {
         if (xlsFieldNames.includes(fieldName)) {
           scoreSum += (Number((item as any)[fieldName]) || 0)
         }
@@ -96,7 +98,7 @@ if (args.action === 'import' && !!args.fileName) {
       (item as any)[targetField] = scoreSum
     })
   }
-  setDataSumFieldValue(FL_SUBJECTS, FN.SCORED)
+  setDataSumFieldValue(F_SUBJ, F.SCORED)
 
   // 总分从大到小排序
   dbData = _.sortBy(dbData, o => -o.SCORED)
@@ -113,7 +115,7 @@ if (args.action === 'import' && !!args.fileName) {
       return
     }
 
-    if (item.SCORED < tScored) {
+    if (Number(item.SCORED) < tScored) {
       tRank = tRank + tSameNum
       tScored = item.SCORED
       tSameNum = 1
@@ -124,19 +126,19 @@ if (args.action === 'import' && !!args.fileName) {
   })
 
   // 文科 & 理科 & 理综 & 文综
-  const dataZkSubjects = _.intersection(xlsFieldNames, FL_ZK_SUBJECTS)
-  const dataLzSubjects = _.intersection(xlsFieldNames, FL_LZ_SUBJECTS)
-  const dataWzSubjects = _.intersection(xlsFieldNames, FL_WZ_SUBJECTS)
+  const dataZkSubjects = _.intersection(xlsFieldNames, F_ZK_SUBJ) as F[]
+  const dataLzSubjects = _.intersection(xlsFieldNames, F_LZ_SUBJ) as F[]
+  const dataWzSubjects = _.intersection(xlsFieldNames, F_WZ_SUBJ) as F[]
   if (dataZkSubjects.length > 0) {
-    setDataSumFieldValue(dataZkSubjects, FN.ZK)
+    setDataSumFieldValue(dataZkSubjects, F.ZK)
   }
   if (dataLzSubjects.length > 0) {
-    setDataSumFieldValue(dataLzSubjects, FN.LZ)
-    setDataSumFieldValue(_.union(dataLzSubjects, dataZkSubjects), FN.LK)
+    setDataSumFieldValue(dataLzSubjects, F.LZ)
+    setDataSumFieldValue(_.union(dataLzSubjects, dataZkSubjects), F.LK)
   }
   if (dataWzSubjects.length > 0) {
-    setDataSumFieldValue(dataWzSubjects, FN.WZ)
-    setDataSumFieldValue(_.union(dataWzSubjects, dataZkSubjects), FN.WK)
+    setDataSumFieldValue(dataWzSubjects, F.WZ)
+    setDataSumFieldValue(_.union(dataWzSubjects, dataZkSubjects), F.WK)
   }
 
   // 导入数据到数据库

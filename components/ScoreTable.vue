@@ -1,5 +1,6 @@
 <template>
   <div
+    v-if="data !== null"
     class="wly-table-container"
     data-toggle="wlyTable"
     style="opacity: 1; height: 371px; padding-bottom: 55px;"
@@ -148,10 +149,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'nuxt-property-decorator'
+import { Component, Vue, Prop } from 'nuxt-property-decorator'
+import { ScoreData } from '../api/interfaces/field'
 
 @Component({})
-export default class ScoreTable extends Vue {}
+export default class ScoreTable extends Vue {
+  @Prop({ default: null })
+  readonly data!: ScoreData[]|null
+}
 </script>
 
 <style scoped lang="scss">

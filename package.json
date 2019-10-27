@@ -46,6 +46,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "node-sass": "^4.12.0",
     "prettier": "^1.16.4",
-    "sass-loader": "^8.0.0"
+    "sass-loader": "^8.0.0",
+    "ts-transformer-keys": "^0.3.5"
   }
 }

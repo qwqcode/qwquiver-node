@@ -1,9 +1,10 @@
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
 import Database from './database'
-import { FN, ScoreDataItem } from './database/fields'
+import F, { ScoreData } from './interfaces/field'
+import { transDict as FT } from './interfaces/field/FieldTrans'
 
-// Create express instnace
+// Create express instance
 const app = express()
 
 const router: Router = Router()
@@ -29,7 +30,7 @@ function getPaginatedItems (items: any[], page: number, pageSize: number) {
     pageSize: pgSize,
     total: items.length,
     lastPage: Math.ceil(items.length / pgSize),
-    data: pagedItems
+    scoreList: pagedItems
   }
 }
 
@@ -37,10 +38,19 @@ router.get('/', (req: Request, res: Response) => {
   res.send('Hello, World!')
 })
 
+router.get('/conf', (req: Request, res: Response) => {
+  const scoreDbInfoList = Database.getScoreDbInfoList()
+  const fieldTransDict = FT
+
+  sendSuccess(res, '', {
+    scoreDbInfoList,
+    fieldTransDict
+  })
+})
+
 router.get('/query', (req: Request, res: Response) => {
   const {
     db: dbName,
-    type,
     data: queryData,
     where: whereJsonStr,
     page: pageStr,
@@ -53,12 +63,11 @@ router.get('/query', (req: Request, res: Response) => {
     return
   }
 
-  const dbList = Database.getScoreDbList()
-  if (typeof dbList[dbName] === 'undefined') {
+  const db = Database.getScoreDb(dbName)
+  if (!db) {
     sendError(res, `未找到数据 ${dbName || ''}`)
     return
   }
-  const db = dbList[dbName]
 
   let conditionList: { [key: string]: string } = {}
   let sortList: { [key: string]: 1|-1 } = {}
@@ -72,16 +81,16 @@ router.get('/query', (req: Request, res: Response) => {
   }
 
   if (queryData)
-    conditionList[FN.NAME] = queryData
+    conditionList[F.NAME] = queryData
 
   const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
 
   db.find(conditionList).sort(sortList).exec((err: Error, rawData) => {
-    const scoreDbData: ScoreDataItem[] = []
+    const scoreDbData: ScoreData[] = []
     rawData.forEach((rawItem) => {
       const item: any = {}
-      Object.values(FN).forEach((fieldName) => {
+      Object.values(F).forEach((fieldName) => {
         if (rawItem[fieldName] !== undefined) item[fieldName] = rawItem[fieldName]
       })
       scoreDbData.push(item)
