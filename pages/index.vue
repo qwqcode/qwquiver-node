@@ -51,8 +51,8 @@
 <script lang="ts">
 import { Vue, Component } from 'nuxt-property-decorator'
 import axios from '@nuxtjs/axios'
-import F, { ScoreData } from '../api/interfaces/field'
-import QueryApiData from '../api/interfaces/QueryApiData'
+import F, { ScoreData } from '../common/interfaces/field'
+import QueryApiData from '../common/interfaces/QueryApiData'
 import ScoreTable from '@/components/ScoreTable.vue'
 
 @Component({

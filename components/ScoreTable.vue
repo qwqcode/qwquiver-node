@@ -58,8 +58,8 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'nuxt-property-decorator'
-import { ScoreData } from '../api/interfaces/field'
-import QueryApiData from '../api/interfaces/QueryApiData'
+import { ScoreData } from '../common/interfaces/field'
+import QueryApiData from '../common/interfaces/QueryApiData'
 
 @Component({})
 export default class ScoreTable extends Vue {

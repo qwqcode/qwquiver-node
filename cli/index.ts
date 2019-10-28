@@ -2,7 +2,7 @@ import path from 'path'
 import fs from 'fs'
 import _ from 'lodash'
 import { ArgumentParser } from 'argparse'
-import { transDict as FT } from '../api/interfaces/field/FieldTrans'
+import { transDict as FT } from '../common/interfaces/field/FieldTrans'
 import ExcelImporter from './actions/ExcelImporter'
 
 const parser = new ArgumentParser({
