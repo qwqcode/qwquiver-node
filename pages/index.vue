@@ -41,7 +41,7 @@
           </div>
         </div>
         <div class="card-block" style="padding: 0;">
-          <ScoreTable :data="scoreTableData" />
+          <ScoreTable :query-data="queryData" />
         </div>
       </div>
     </div>
@@ -52,22 +52,23 @@
 import { Vue, Component } from 'nuxt-property-decorator'
 import axios from '@nuxtjs/axios'
 import F, { ScoreData } from '../api/interfaces/field'
+import QueryApiData from '../api/interfaces/QueryApiData'
 import ScoreTable from '@/components/ScoreTable.vue'
 
 @Component({
   components: { ScoreTable }
 })
 export default class IndexPage extends Vue {
-  scoreTableData: ScoreData[] = []
+  queryData: QueryApiData|null = null
 
   created () {
     this.fetchScoreTableData()
   }
 
   async fetchScoreTableData () {
-    const data = await this.$axios.$get('./api/query?db=test&page=10&pagePer=50')
-    if (data.success) {
-      this.scoreTableData = data.data
+    const respData = await this.$axios.$get('./api/query?db=test&page=10&pagePer=50')
+    if (respData.success) {
+      this.queryData = respData.data
     }
   }
 }

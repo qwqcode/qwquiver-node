@@ -1,13 +1,9 @@
 import path from 'path'
 import fs from 'fs'
 import _ from 'lodash'
-import * as XLSX from 'xlsx'
 import { ArgumentParser } from 'argparse'
-import DataStore from 'nedb'
-import Database, { SCORE_DB_PATH } from '../api/database'
-import F, { ScoreData } from '../api/interfaces/field'
 import { transDict as FT } from '../api/interfaces/field/FieldTrans'
-import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../api/interfaces/field/FieldGrp'
+import ExcelImporter from './actions/ExcelImporter'
 
 const parser = new ArgumentParser({
   description: `QWQUIVER v${process.env.npm_package_version} Command Line Interface`,
@@ -47,102 +43,5 @@ const args = parser.parseArgs()
 console.dir(args)
 
 if (args.action === 'import' && !!args.fileName) {
-  const dbFilename = path.join(SCORE_DB_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db')
-  if (fs.existsSync(dbFilename)) {
-    console.error(`[ERROR] Excel data has imported before. \nif you want to import again, please delete it first.\n"${dbFilename}"`)
-    process.exit(0)
-  }
-
-  const db = new DataStore({
-    filename: dbFilename,
-    autoload: true
-  })
-
-  const theadRowIndex = 0
-  const wb: XLSX.WorkBook = XLSX.readFile(args.fileName)
-  const xlsData: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 })
-  const xlsFieldPos: { [key: string]: number } = {}
-  const xlsFieldNames: string[] = []
-
-  // 读取表头
-  xlsData[theadRowIndex].forEach((colVal: string, pos: number) => {
-    F_ALL.forEach((fieldName) => {
-      if (colVal === fieldName) {
-        xlsFieldPos[fieldName] = pos
-        xlsFieldNames.push(fieldName)
-      }
-    })
-  })
-
-  // 读取数据
-  let dbData: ScoreData[] = []
-  xlsData.forEach((rowValues, rowIndex) => {
-    if (rowIndex === 0) return
-    const dataItem: any = {}
-    _.forEach(xlsFieldPos, (pos: number, filedName: string) => {
-      dataItem[filedName] = rowValues[pos] || null
-    })
-    dbData.push(dataItem)
-  })
-
-  // 总分 & 排名
-  const setDataSumFieldValue = (dataFields: F[], targetField: F) => {
-    if (!dataFields || dataFields.length <= 0) return
-    _.forEach(dbData, (item) => {
-      let scoreSum = 0
-      dataFields.forEach((fieldName: string) => {
-        if (xlsFieldNames.includes(fieldName)) {
-          scoreSum += (Number((item as any)[fieldName]) || 0)
-        }
-      });
-      (item as any)[targetField] = scoreSum
-    })
-  }
-  setDataSumFieldValue(F_SUBJ, F.SCORED)
-
-  // 总分从大到小排序
-  dbData = _.sortBy(dbData, o => -o.SCORED)
-
-  // RANK
-  let tRank = 1
-  let tScored = -1
-  let tSameNum = 1
-  _.forEach(dbData, (item) => {
-    if (tScored === -1) {
-      // 最高分初始化
-      tScored = item.SCORED
-      item.RANK = tRank
-      return
-    }
-
-    if (Number(item.SCORED) < tScored) {
-      tRank = tRank + tSameNum
-      tScored = item.SCORED
-      tSameNum = 1
-    } else {
-      tSameNum++
-    }
-    item.RANK = tRank
-  })
-
-  // 文科 & 理科 & 理综 & 文综
-  const dataZkSubjects = _.intersection(xlsFieldNames, F_ZK_SUBJ) as F[]
-  const dataLzSubjects = _.intersection(xlsFieldNames, F_LZ_SUBJ) as F[]
-  const dataWzSubjects = _.intersection(xlsFieldNames, F_WZ_SUBJ) as F[]
-  if (dataZkSubjects.length > 0) {
-    setDataSumFieldValue(dataZkSubjects, F.ZK)
-  }
-  if (dataLzSubjects.length > 0) {
-    setDataSumFieldValue(dataLzSubjects, F.LZ)
-    setDataSumFieldValue(_.union(dataLzSubjects, dataZkSubjects), F.LK)
-  }
-  if (dataWzSubjects.length > 0) {
-    setDataSumFieldValue(dataWzSubjects, F.WZ)
-    setDataSumFieldValue(_.union(dataWzSubjects, dataZkSubjects), F.WK)
-  }
-
-  // 导入数据到数据库
-  dbData.forEach((item) => {
-    db.insert(item)
-  })
+  ExcelImporter(args)
 }
