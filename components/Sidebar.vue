@@ -112,4 +112,68 @@ export default class Sidebar extends Vue {}
 </script>
 
 <style scoped lang="scss">
+.sidebar {
+  width: 270px;
+  position: fixed;
+  z-index: 3;
+  left: 0;
+  padding-top: 55px;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  transform: translate(0px, 0px);
+  transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
+
+  &.sidebar.sidebar-hide {
+    transform: translate(-270px, 0px) !important;
+  }
+}
+
+.widget {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  padding: 0 20px;
+
+  &.link-list {
+    padding: 0;
+
+    .list-label {
+      position: relative;
+      color: #919da8;
+      font-size: 13px;
+      font-weight: normal;
+      padding: 10px 25px;
+      margin: 15px 0 10px 0;
+    }
+
+    ul {
+      padding: 0;
+      margin: 10px 0;
+      list-style: none;
+    }
+
+    ul > li {
+      &:hover > a,
+      &.active > a {
+        color: #32c787;
+      }
+
+      & > a {
+        text-decoration: none;
+        color: #82888d;
+        padding: 10px 25px;
+        display: block;
+
+        & > i {
+          margin-right: 5px;
+          width: 20px;
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
 </style>

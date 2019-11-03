@@ -1,5 +1,6 @@
 <template>
   <div class="site-index">
+    <CardCSSCode />
     <ScoreTable />
   </div>
 </template>
@@ -9,9 +10,10 @@ import { Vue, Component } from 'nuxt-property-decorator'
 import axios from '@nuxtjs/axios'
 import F, { ScoreData } from '../common/interfaces/field'
 import ScoreTable from '@/components/ScoreTable.vue'
+import Card from '@/components/Card.vue'
 
 @Component({
-  components: { ScoreTable }
+  components: { ScoreTable, CardCSSCode: Card }
 })
 export default class IndexPage extends Vue {
 }
