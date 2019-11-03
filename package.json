@@ -26,6 +26,7 @@
     "nuxt": "^2.0.0",
     "nuxt-property-decorator": "^2.5.0",
     "ts-node": "^8.4.1",
+    "vue2-animate": "^2.1.2",
     "xlsx": "^0.15.1"
   },
   "devDependencies": {

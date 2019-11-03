@@ -72,26 +72,21 @@
         </div>
         <div ref="tPagination" class="wly-table-pagination">
           <div class="paginate-simple">
-            <a :class="{ disabled: data.page-1 <= 0 }" class="paginate-button previous" title="上一页"></a>
+            <a :class="{ disabled: data.page-1 <= 0 }" class="paginate-button previous" title="上一页" @click="switchPage(data.page-1)"></a>
             <span>
-              <a v-for="pageNum in curtVisiblePageBtn" :key="pageNum" :class="{ current: pageNum === data.page }" class="paginate-button">{{ pageNum }}</a>
+              <a v-for="(pageNum, i) in visiblePageBtn" :key="i" :class="{ current: pageNum === data.page }" class="paginate-button" @click="switchPage(pageNum)">{{ pageNum }}</a>
             </span>
-            <a :class="{ disabled: data.page+1 <= 0 }" class="paginate-button next" title="下一页"></a>
+            <a :class="{ disabled: data.page+1 > data.lastPage }" class="paginate-button next" title="下一页" @click="switchPage(data.page+1)"></a>
             <a
               class="paginate-button"
               title="最后一页"
+              @click="switchPage(data.lastPage)"
             >{{ data.lastPage }}</a>
-          </div>
-        </div>
-        <div ref="tLoading" class="wly-table-loading" style="display: none" data-wlytable="loading">
-          <div class="page-loader__spinner" style="display: none">
-            <svg viewBox="25 25 50 50">
-              <circle cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10" />
-            </svg>
           </div>
         </div>
       </div>
     </div>
+    <LoadingLayer ref="tLoading" />
   </div>
 </template>
 
@@ -99,20 +94,31 @@
 import $ from 'jquery'
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import { ScoreData } from '../common/interfaces/field'
-import QueryApiData from '../common/interfaces/QueryApiData'
+import { QueryApiData, QueryApiParams } from '../common/interfaces/QueryApi'
+import LoadingLayer from './LoadingLayer.vue'
 
-@Component({})
+@Component({
+  components: { LoadingLayer }
+})
 export default class ScoreTable extends Vue {
   data: QueryApiData | null = null
+  params: QueryApiParams | null = null
   isFullScreen = false
+  loading!: LoadingLayer
 
   created () {
-    this.fetchScoreTableData()
   }
 
   mounted () {
+    this.loading = this.$refs.tLoading as LoadingLayer
     $(window).resize(() => {
       this.adjustDisplay()
+    })
+
+    this.fetchData({
+      db: 'test',
+      page: 1,
+      pagePer: 50
     })
   }
 
@@ -123,30 +129,42 @@ export default class ScoreTable extends Vue {
     })
   }
 
-  async fetchScoreTableData () {
-    const respData = await this.$axios.$get('./api/query?db=test&page=1&pagePer=50')
+  async fetchData (params: QueryApiParams) {
+    this.loading.show()
+    this.params = params
+    const respData = await this.$axios.$get('./api/query', { params })
+    this.loading.hide()
     if (respData.success) {
       this.data = respData.data
     }
   }
 
-  get curtVisiblePageBtn () {
+  async switchPage (pageNum: number) {
+    if (!this.data || pageNum <= 0 || pageNum > this.data.lastPage) return
+    await this.fetchData({ ...this.params, ...{ page: pageNum } })
+  }
+
+  get visiblePageBtn () {
     if (this.data === null) return []
     const arr = []
-    const showItemNum = 5
-    for (let i = 0; i < showItemNum; i++) {
+    const lItemNum = 3
+    const rItemNum = 3
+    for (let i = lItemNum; i > 0; i--) {
+      const pg = this.data.page - i
+      if (pg > 0) arr.push(pg)
+    }
+    for (let i = 0; i < rItemNum; i++) {
       const pg = this.data.page + i
-      if (pg <= this.data.lastPage)
-        arr.push(pg)
+      if (pg <= this.data.lastPage) arr.push(pg)
     }
     return arr
   }
 
   getHeight () {
-    return ($(window).height() || 0) - ($('.main-navbar').outerHeight(true)  || 0) - ($('.card .card-header').outerHeight(true) || 0) - 80;
+    return ($(window).height() || 0) - ($('.main-navbar').outerHeight(true)  || 0) - ($('.card .card-header').outerHeight(true) || 0) - 80
   }
 
-  adjustDisplay() {
+  adjustDisplay () {
     const topNavbar = $('.main-navbar')
 
     const containerEl = $(this.$refs.tContainer)

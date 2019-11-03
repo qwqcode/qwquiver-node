@@ -28,7 +28,8 @@ const config: Configuration = {
   css: [
     'normalize.css',
     '@/assets/css/main.css',
-    'material-design-iconic-font/dist/css/material-design-iconic-font.min.css'
+    'material-design-iconic-font/dist/css/material-design-iconic-font.min.css',
+    'vue2-animate/dist/vue2-animate.min.css'
   ],
   /*
    ** Plugins to load before mounting the App

@@ -8,7 +8,6 @@
 import { Vue, Component } from 'nuxt-property-decorator'
 import axios from '@nuxtjs/axios'
 import F, { ScoreData } from '../common/interfaces/field'
-import QueryApiData from '../common/interfaces/QueryApiData'
 import ScoreTable from '@/components/ScoreTable.vue'
 
 @Component({

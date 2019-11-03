@@ -1,7 +1,7 @@
 import express, { Router, Request, Response } from 'express'
 import F, { ScoreData } from '../common/interfaces/field'
 import { transDict as FT } from '../common/interfaces/field/FieldTrans'
-import QueryApiData from '../common/interfaces/QueryApiData'
+import { QueryApiData, QueryApiParams } from '../common/interfaces/QueryApi'
 import Utils from './Utils'
 import Database from './database'
 
@@ -23,12 +23,11 @@ export default class Actions {
   public query (req: Request, res: Response) {
     const {
       db: dbName,
-      data: queryData,
       where: whereJsonStr,
       page: pageStr,
       pagePer: pagePerStr,
       sort: sortJsonStr
-    } = req.query
+    } = req.query as QueryApiParams
 
     if (!dbName) {
       Utils.error(res, `未选择数据`)
@@ -51,9 +50,6 @@ export default class Actions {
       Utils.error(res, `参数 JSON 解析错误`)
       return
     }
-
-    if (queryData)
-      conditionList[F.NAME] = queryData
 
     const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
     const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
