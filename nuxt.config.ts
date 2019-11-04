@@ -67,7 +67,8 @@ const config: Configuration = {
   serverMiddleware: [
     // API middleware
     '~/api/index.ts'
-  ]
+  ],
+  watch: ['~/api/*.ts']
 }
 
 export default config

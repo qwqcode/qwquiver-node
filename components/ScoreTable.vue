@@ -46,7 +46,7 @@
             <thead>
               <tr>
                 <th v-for="(fieldName, i) in data.fieldNameList" :key="i">
-                  <span class :title="`依 ${fieldName} 降序`">{{ fieldName }}</span>
+                  <span class="" :title="`依 ${fieldName} 降序`">{{ fieldName }}</span>
                 </th>
               </tr>
             </thead>
@@ -56,9 +56,7 @@
           <table class="table table-striped table-hover" style="margin-top: -47.8571px;">
             <thead>
               <tr>
-                <th v-for="(fieldName, i) in data.fieldNameList" :key="i">
-                  <span class :title="`依 ${fieldName} 降序`">{{ fieldName }}</span>
-                </th>
+                <th v-for="(fieldName, i) in data.fieldNameList" :key="i">{{ fieldName }}</th>
               </tr>
             </thead>
             <tbody>

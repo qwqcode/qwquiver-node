@@ -40,8 +40,8 @@ export default class Actions {
       return
     }
 
-    let conditionList: { [key: string]: string } = {}
-    let sortList: { [key: string]: 1|-1 } = {}
+    let conditionList: { [key in F]?: string } = {}
+    let sortList: { [key in F]?: 1|-1 } = {}
 
     try {
         if (whereJsonStr) conditionList = JSON.parse(whereJsonStr)
@@ -49,6 +49,9 @@ export default class Actions {
     } catch {
       Utils.error(res, `参数 JSON 解析错误`)
       return
+    }
+    if (!sortJsonStr) {
+      sortList = { SCORED: -1 }
     }
 
     const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
