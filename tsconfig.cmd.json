@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "./cli",
+    "baseUrl": "./cmd",
     "paths": {
       "~/*": ["../*"],
       "@/*": ["./*"],

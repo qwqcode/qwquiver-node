@@ -1,12 +1,12 @@
 import path from 'path'
 import fs from 'fs'
-import _ from 'lodash'
 import * as XLSX from 'xlsx'
-import DataStore from 'nedb'
 import F, { ScoreData } from '../../common/interfaces/field'
 import { transDict as FT } from '../../common/interfaces/field/FieldTrans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../common/interfaces/field/FieldGrp'
 import Database, { SCORE_DB_PATH } from '../../server/database'
+import DataStore from 'nedb'
+import _ from 'lodash'
 
 export default function ExcelImporter (args: any) {
   const dbFilename = path.join(SCORE_DB_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db')

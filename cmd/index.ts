@@ -1,9 +1,9 @@
 import path from 'path'
 import fs from 'fs'
-import _ from 'lodash'
-import { ArgumentParser } from 'argparse'
 import { transDict as FT } from '../common/interfaces/field/FieldTrans'
 import ExcelImporter from './actions/ExcelImporter'
+import _ from 'lodash'
+import { ArgumentParser } from 'argparse'
 
 const parser = new ArgumentParser({
   description: `QWQUIVER v${process.env.npm_package_version} Command Line Interface`,
