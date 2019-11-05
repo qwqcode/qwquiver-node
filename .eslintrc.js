@@ -10,11 +10,18 @@ module.exports = {
     'prettier/vue',
     'plugin:nuxt/recommended'
   ],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'import'],
   // add your custom rules here
   rules: {
     '@typescript-eslint/no-unused-vars': 'off',
     'nuxt/no-cjs-in-config': 'off',
     'no-unused-vars': 'off'
+  },
+  settings: {
+    'import/core-modules': ['nuxt-property-decorator'],
+    'import/resolver': {
+      // use <root>/tsconfig.json
+      'typescript': {},
+    }
   }
 }

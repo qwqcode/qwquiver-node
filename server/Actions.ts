@@ -1,9 +1,9 @@
-import express, { Router, Request, Response } from 'express'
 import F, { ScoreData } from '../common/interfaces/field'
 import { transDict as FT } from '../common/interfaces/field/FieldTrans'
 import { QueryApiData, QueryApiParams } from '../common/interfaces/QueryApi'
 import Utils from './Utils'
 import Database from './database'
+import express, { Router, Request, Response } from 'express'
 
 export default class Actions {
   public index (req: Request, res: Response) {

@@ -1,9 +1,9 @@
 import path from 'path'
 import fs from 'fs'
-import _ from 'lodash'
-import DataStore from 'nedb'
 import F, { ScoreData } from '../../common/interfaces/field'
 import ScoreDbInfo from '../../common/interfaces/ScoreDbInfo'
+import _ from 'lodash'
+import DataStore from 'nedb'
 
 export const DB_BASE_PATH = path.join(__dirname, '../../storage/database')
 export const SCORE_DB_PATH = path.join(DB_BASE_PATH, 'scores')

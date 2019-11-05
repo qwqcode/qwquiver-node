@@ -1,5 +1,5 @@
-import express, { Router } from 'express'
 import Actions from './Actions'
+import express, { Router } from 'express'
 
 const router: Router = Router()
 const actions = new Actions()

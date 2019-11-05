@@ -89,11 +89,11 @@
 </template>
 
 <script lang="ts">
-import $ from 'jquery'
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
-import { ScoreData } from '../common/interfaces/field'
-import { QueryApiData, QueryApiParams } from '../common/interfaces/QueryApi'
 import LoadingLayer from './LoadingLayer.vue'
+import { ScoreData } from '~/common/interfaces/field'
+import { QueryApiData, QueryApiParams } from '~/common/interfaces/QueryApi'
+import $ from 'jquery'
 
 @Component({
   components: { LoadingLayer }
@@ -144,7 +144,7 @@ export default class ScoreTable extends Vue {
 
   get visiblePageBtn () {
     if (this.data === null) return []
-    const arr = []
+    const arr: number[] = []
     const lItemNum = 3
     const rItemNum = 3
     for (let i = lItemNum; i > 0; i--) {

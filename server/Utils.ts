@@ -1,6 +1,6 @@
+import PaginatedData from '../common/interfaces/PaginatedData'
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
-import PaginatedData from '../common/interfaces/PaginatedData'
 
 export default class Utils {
   static success (res: Response, msg?: string, data?: Object) {

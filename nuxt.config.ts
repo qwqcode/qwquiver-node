@@ -1,7 +1,12 @@
+import path from 'path'
 import { Configuration } from '@nuxt/types'
 
 const config: Configuration = {
   mode: 'spa',
+  /**
+   * Source directory
+   */
+  srcDir: 'client/',
   /*
    ** Headers of the page
    */
@@ -65,10 +70,10 @@ const config: Configuration = {
     extend(config, ctx) {}
   },
   serverMiddleware: [
-    // API middleware
-    '~/api/index.ts'
+    // Server middleware
+    path.join(__dirname, 'server/index.ts')
   ],
-  watch: ['~/api/*.ts']
+  watch: [path.join(__dirname, 'server/*.ts')]
 }
 
 export default config

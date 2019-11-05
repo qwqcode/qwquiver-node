@@ -1,27 +1,29 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
-    "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./*"],
-      "~~/*": ["./*"],
-      "@@/*": ["./*"]
-    },
-    "outDir": "./dist/",
-    "sourceMap": true,
-    "noImplicitAny": true,
+    "baseUrl": ".",
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
-    "strict": true,
-    "allowJs": true,
-    "experimentalDecorators": true,
-    "esModuleInterop": true,
     "lib": [
       "esnext",
       "esnext.asynciterable",
       "dom"
     ],
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./client/*"],
+      "~~/*": ["./*"],
+      "@@/*": ["./client/*"]
+    },
     "types": [
       "@nuxt/types",
       "@nuxtjs/axios",
@@ -29,7 +31,5 @@
     ]
   },
   "exclude": ["node_modules", ".nuxt", "dist"],
-  "include": [
-    "./types/**/*"
-  ]
+  "include": ["./client/types/**/*"]
 }

@@ -1,8 +1,8 @@
-import express from 'express'
-import _ from 'lodash'
 import Database from './database'
 import Api from './Routes'
 import ErrorHandler from './middleware/ErrorHandler'
+import express from 'express'
+import _ from 'lodash'
 
 // 初始化数据库
 Database.init()

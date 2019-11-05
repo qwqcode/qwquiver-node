@@ -14,8 +14,8 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
-import TopHeader from '../components/TopHeader.vue'
-import Sidebar from '../components/Sidebar.vue'
+import TopHeader from '@/components/TopHeader.vue'
+import Sidebar from '@/components/Sidebar.vue'
 
 @Component({
   components: { TopHeader, Sidebar }
