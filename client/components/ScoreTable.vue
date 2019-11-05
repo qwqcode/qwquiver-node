@@ -45,8 +45,8 @@
           <table class="table table-striped table-hover" style="width: 1868.29px;">
             <thead>
               <tr>
-                <th v-for="(fieldName, i) in data.fieldNameList" :key="i">
-                  <span class="" :title="`依 ${fieldName} 降序`">{{ fieldName }}</span>
+                <th v-for="(fieldName, i) in data.fieldNameList" :key="i" @click="switchSort(fieldName)">
+                  <span :class="getFieldItemClass(fieldName)" :title="getFieldItemHoverTitle(fieldName)">{{ getFieldItemLabel(fieldName) }}</span>
                 </th>
               </tr>
             </thead>
@@ -56,7 +56,7 @@
           <table class="table table-striped table-hover" style="margin-top: -47.8571px;">
             <thead>
               <tr>
-                <th v-for="(fieldName, i) in data.fieldNameList" :key="i">{{ fieldName }}</th>
+                <th v-for="(fieldName, i) in data.fieldNameList" :key="i">{{ getFieldItemLabel(fieldName) }}</th>
               </tr>
             </thead>
             <tbody>
@@ -91,9 +91,11 @@
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
-import { ScoreData } from '~/common/interfaces/field'
-import { QueryApiData, QueryApiParams } from '~/common/interfaces/QueryApi'
+import F, { ScoreData } from '~~/common/interfaces/field'
+import { FTrans } from '~~/common/interfaces/field/FieldTrans'
+import { QueryApiData, QueryApiParams } from '~~/common/interfaces/QueryApi'
 import $ from 'jquery'
+import _ from 'lodash'
 
 @Component({
   components: { LoadingLayer }
@@ -140,6 +142,11 @@ export default class ScoreTable extends Vue {
   async switchPage (pageNum: number) {
     if (!this.data || pageNum <= 0 || pageNum > this.data.lastPage) return
     await this.fetchData({ ...this.params, ...{ page: pageNum } })
+  }
+
+  async switchSort (fieldName: F) {
+    if (!this.data) return
+    await this.fetchData({ ...this.params, ...{ page: 1, sort: JSON.stringify({ [fieldName]: ((this.data.sortList[fieldName] === -1) ? 1 : -1) }) } })
   }
 
   get visiblePageBtn () {
@@ -204,6 +211,26 @@ export default class ScoreTable extends Vue {
       }
     )
     headerTableEl.width((bodyTableEl.outerWidth(true) || 0) - 2) // minus the 2px border-width
+  }
+
+  getFieldItemLabel (fieldName: F) {
+    return FTrans(fieldName)
+  }
+
+  getFieldItemClass (fieldName: F) {
+    if (!this.data) return ''
+    const sortType = this.data.sortList[fieldName]
+    if (typeof sortType !== 'number') return ''
+    return (sortType === 1) ? 'sort-asc' : 'sort-desc'
+  }
+
+  getFieldItemHoverTitle (fieldName: F) {
+    if (!this.data) return ''
+    const sortType = this.data.sortList[fieldName]
+    let title = `依 总分 ${(sortType === -1) ? '升序' : '降序'} `
+    if (typeof sortType === 'number')
+      title += `[当前为 ${(sortType === -1) ? '降序' : '升序'}]`
+    return title
   }
 }
 </script>
@@ -340,7 +367,7 @@ label {
     th span {
       cursor: pointer;
 
-      &.select {
+      &.sort-desc, &.sort-asc {
         color: #03a9f4;
 
         &:after {
@@ -348,13 +375,13 @@ label {
           position: absolute;
           width: 20px;
         }
+      }
 
-        &.sort-desc:after {
-          content: "\f2fe";
-        }
-        &.sort-asc:after {
-          content: "\f303";
-        }
+      &.sort-desc:after {
+        content: "\f2fe";
+      }
+      &.sort-asc:after {
+        content: "\f303";
       }
     }
   }

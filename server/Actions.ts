@@ -75,7 +75,12 @@ export default class Actions {
       if (err) {
         Utils.error(res, `数据获取错误 ${err.message}`)
       }
-      Utils.success(res, '数据获取成功', <QueryApiData>{ ...Utils.getPaginatedItems(scoreDbData, page, pagePer), fieldNameList })
+      Utils.success(res, '数据获取成功', <QueryApiData>{
+        ...Utils.getPaginatedItems(scoreDbData, page, pagePer),
+        fieldNameList,
+        conditionList,
+        sortList
+      })
     })
   }
 }
