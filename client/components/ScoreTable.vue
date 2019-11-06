@@ -115,11 +115,13 @@ export default class ScoreTable extends Vue {
       this.adjustDisplay()
     })
 
-    this.fetchData({
+    let params: QueryApiParams = {
       db: 'test',
       page: 1,
       pagePer: 50
-    })
+    }
+    if (this.$route.query) params = { ...params, ...this.$route.query }
+    this.onRouteQueryChanged(params as QueryApiParams)
   }
 
   @Watch('data')
@@ -129,14 +131,21 @@ export default class ScoreTable extends Vue {
     })
   }
 
-  async fetchData (params: QueryApiParams) {
+  @Watch('$route.query')
+  async onRouteQueryChanged (query: any) {
+    if (query === this.params) return
+
     this.loading.show()
-    this.params = params
-    const respData = await this.$axios.$get('./api/query', { params })
+    this.params = query
+    const respData = await this.$axios.$get('./api/query', { params: this.params })
     this.loading.hide()
     if (respData.success) {
       this.data = respData.data
     }
+  }
+
+  fetchData (params: QueryApiParams) {
+    this.$router.replace({ query: params as any })
   }
 
   async switchPage (pageNum: number) {
