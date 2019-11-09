@@ -4,6 +4,7 @@
 
     <div class="wrap">
       <Sidebar />
+      <SearchPanel />
 
       <div class="main-content-area">
         <nuxt class="content-inner" />
@@ -15,10 +16,11 @@
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 import TopHeader from '@/components/TopHeader.vue'
+import SearchPanel from '@/components/SearchPanel.vue'
 import Sidebar from '@/components/Sidebar.vue'
 
 @Component({
-  components: { TopHeader, Sidebar }
+  components: { TopHeader, SearchPanel, Sidebar }
 })
 export default class Default extends Vue {
 
@@ -72,7 +74,7 @@ export default class Default extends Vue {
 }
 
 .wly-table-header thead th span.select {
-  color: #03A9F4;
+  color: #1a73e8;
 }
 
 .wly-table-header thead th span.select:after {

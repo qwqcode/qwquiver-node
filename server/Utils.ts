@@ -1,4 +1,4 @@
-import PaginatedData from '../common/interfaces/PaginatedData'
+import PaginatedData from '../common/interfaces/api/PaginatedData'
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
 

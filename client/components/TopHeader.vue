@@ -45,7 +45,7 @@ export default class TopHeader extends Vue {}
   overflow: hidden;
   position: fixed;
   width: 100%;
-  background: #32c787;
+  background: #1a73e8;
   color: #FFFFFF;
   padding: 0 15px;
   box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);

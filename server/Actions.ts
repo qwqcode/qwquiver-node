@@ -1,9 +1,28 @@
 import F, { ScoreData } from '../common/interfaces/field'
 import { transDict as FT } from '../common/interfaces/field/FieldTrans'
-import { QueryApiData, QueryApiParams } from '../common/interfaces/QueryApi'
+import { QueryApiData, QueryApiParams } from '../common/interfaces/api/QueryApi'
+import { AllSchoolApiParams, AllSchoolApiData } from '../common/interfaces/api/AllSchoolApi'
+import ApiCommonParams from '../common/interfaces/api/ApiCommonParams'
 import Utils from './Utils'
 import Database from './database'
+import _ from 'lodash'
 import express, { Router, Request, Response } from 'express'
+
+const getDbByReq = (req: Request, res: Response) => {
+  const { db: dbName } = req.query as ApiCommonParams
+  if (!dbName) {
+    Utils.error(res, `未选择数据`)
+    return null
+  }
+
+  const db = Database.getScoreDb(dbName)
+  if (!db) {
+    Utils.error(res, `未找到数据 ${dbName || ''}`)
+    return null
+  }
+
+  return db
+}
 
 export default class Actions {
   public index (req: Request, res: Response) {
@@ -29,16 +48,8 @@ export default class Actions {
       sort: sortJsonStr
     } = req.query as QueryApiParams
 
-    if (!dbName) {
-      Utils.error(res, `未选择数据`)
-      return
-    }
-
-    const db = Database.getScoreDb(dbName)
-    if (!db) {
-      Utils.error(res, `未找到数据 ${dbName || ''}`)
-      return
-    }
+    const db = getDbByReq(req, res)
+    if (!db) return
 
     let conditionList: { [key in F]?: string } = {}
     let sortList: { [key in F]?: 1|-1 } = {}
@@ -82,5 +93,23 @@ export default class Actions {
         sortList
       })
     })
+  }
+
+  public allSchoolClass (req: Request, res: Response) {
+    const { db: dbName } = req.query as AllSchoolApiParams
+
+    const db = getDbByReq(req, res)
+    if (!db) return
+
+    const respData: AllSchoolApiData = { school: {} }
+    _.forEach(db.getAllData(), (item: ScoreData) => {
+      let classInSchool = respData.school[item.SCHOOL]
+      if (!classInSchool)
+        classInSchool = respData.school[item.SCHOOL] = []
+      if (!classInSchool.includes(item.CLASS))
+        classInSchool.push(item.CLASS)
+    })
+
+    Utils.success(res, '数据获取成功', respData)
   }
 }

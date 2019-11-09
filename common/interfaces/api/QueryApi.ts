@@ -1,8 +1,8 @@
+import F from '../field'
 import PaginatedData from './PaginatedData'
-import F from './field'
+import ApiCommonParams from './ApiCommonParams'
 
-export interface QueryApiParams {
-  db?: string
+export interface QueryApiParams extends ApiCommonParams {
   where?: string
   page?: number
   pagePer?: number

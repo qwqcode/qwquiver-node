@@ -35,7 +35,7 @@ export default class ChartsPage extends Vue {}
         &.zmdi-square-o {}
 
         &.zmdi-check-square {
-          color: #03a9f4;
+          color: #1a73e8;
         }
       }
     }

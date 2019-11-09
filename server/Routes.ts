@@ -7,5 +7,6 @@ const actions = new Actions()
 router.get('/', actions.index)
 router.get('/conf', actions.conf)
 router.get('/query', actions.query)
+router.get('/allSchoolClass', actions.allSchoolClass)
 
 export default router

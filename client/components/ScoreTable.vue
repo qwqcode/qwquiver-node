@@ -1,11 +1,11 @@
 <template>
   <div class="grades-table card">
-    <div class="card-header">
+    <div v-if="data !== null" class="card-header">
       <h2 class="card-title" data-wlytable="title">
         一中 - 高一下 期末 [理科] - 全市考生成绩
-        <span style="font-size: 13px;vertical-align: bottom;">[页码 1/492]</span>
+        <span style="font-size: 13px;vertical-align: bottom;">[页码 {{ data.page }}/{{ data.lastPage }}]</span>
       </h2>
-      <small class="card-subtitle">本次考试共有 492 人参加</small>
+      <small class="card-subtitle">本次考试共有 {{ data.total }} 人参加</small>
       <div class="actions">
         <span onclick="wlySearch.showPanel()" class="actions__item show-top-badge">
           <i class="zmdi zmdi-search"></i>
@@ -33,9 +33,8 @@
         </span>
       </div>
     </div>
-    <div class="card-block" style="padding: 0;">
+    <div v-if="data !== null" class="card-block" style="padding: 0;">
       <div
-        v-if="data !== null"
         ref="tContainer"
         class="wly-table-container"
         data-toggle="wlyTable"
@@ -93,7 +92,7 @@ import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
 import F, { ScoreData } from '~~/common/interfaces/field'
 import { FTrans } from '~~/common/interfaces/field/FieldTrans'
-import { QueryApiData, QueryApiParams } from '~~/common/interfaces/QueryApi'
+import { QueryApiData, QueryApiParams } from '~~/common/interfaces/api/QueryApi'
 import $ from 'jquery'
 import _ from 'lodash'
 
@@ -377,7 +376,7 @@ label {
       cursor: pointer;
 
       &.sort-desc, &.sort-asc {
-        color: #03a9f4;
+        color: #1a73e8;
 
         &:after {
           font-family: Material-Design-Iconic-Font;
@@ -430,7 +429,7 @@ label {
       .ranking {
         font-size: 12px;
         vertical-align: text-top;
-        color: #03a9f4;
+        color: #1a73e8;
         position: absolute;
         margin-left: 3px;
       }
@@ -531,206 +530,6 @@ label {
   }
 }
 
-/* wly-search-panel */
-.wly-search-panel {
-  background-color: rgba(0, 0, 0, 0.35);
-  position: fixed;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 999;
-  overflow: hidden;
-
-  .search-panel-inner {
-    transition: transform 0.3s, -webkit-transform 0.3s;
-    transform: scaleY(0);
-    -webkit-transform: scaleY(0);
-
-    &.show-panel {
-      -webkit-transform: inherit;
-      transform: inherit;
-    }
-  }
-
-  .card-block {
-    padding: 0;
-  }
-
-  .search-form {
-    .search-input {
-      display: block;
-      padding: 2.1rem;
-      width: 100%;
-      border: 0;
-      text-align: center;
-      outline: none;
-      font-size: 21px;
-      color: #2196f3;
-
-      &:focus {
-      }
-    }
-
-    .search-btn {
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: 100px;
-      height: 100%;
-      background: #03a9f4;
-      box-shadow: 0 0 4px 1px rgba(181, 181, 181, 0.64);
-      color: #fff;
-      margin-right: 5px;
-      font-size: 30px;
-      border: 0;
-      outline: none;
-      transition: all 0.2s ease-in-out;
-
-      &:hover,
-      &:active,
-      &:focus {
-        background: #30bfff;
-      }
-    }
-
-    &.query-by-category-form {
-      line-height: 90px;
-      padding: 0 20px;
-
-      & > select {
-        width: auto;
-        padding: 5px 5px;
-        outline: none;
-        border: 1px solid transparent;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.11);
-        border-radius: 3px;
-        cursor: pointer;
-      }
-
-      .middle-text {
-        margin: 0 20px;
-        color: #878990;
-        font-weight: bold;
-      }
-
-      & > select:focus {
-        border: 1px solid #2196f3;
-      }
-    }
-  }
-
-  .search-toolbar {
-    padding: 15px 30px;
-    width: 100%;
-    background: rgb(236, 236, 236);
-    border-radius: 0 0 10px 10px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.075);
-    margin-top: -4px;
-
-    .action-btn {
-      background: #fff;
-      color: #5f5f5f;
-      border: none;
-      padding: 10px 30px;
-      border-radius: 4px;
-      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.09);
-      outline: none;
-      transition: all 0.2s;
-      margin-right: 14px;
-
-      &:hover {
-        box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);
-        color: #000;
-      }
-    }
-
-    .copyright {
-      float: right;
-      line-height: 55px;
-      color: #888;
-
-      &:before {
-        color: #03a9f4;
-        content: "\f1b1";
-        margin-right: 5px;
-        font: normal normal normal 14px/1 Material-Design-Iconic-Font;
-      }
-    }
-  }
-
-  @media screen and (max-width: 559px) {
-    .search-panel-inner {
-      transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
-      -webkit-transform: translate(0px, -100vh);
-      transform: translate(0px, -100vh);
-      width: 100%;
-    }
-
-    .wly-search-panel {
-      align-items: inherit;
-      padding-top: 55px;
-      background-color: #fff;
-
-      .container {
-        padding: 0;
-        box-shadow: none;
-        border-bottom: 1px solid #f4f4f4;
-      }
-    }
-
-    .search-form {
-      .search-input {
-        padding: 25px 25px;
-      }
-
-      .search-btn {
-        width: 45px;
-        line-height: 100%;
-        box-shadow: none;
-        background: #fff;
-        color: #03a9f4;
-        font-size: 20px;
-      }
-    }
-
-    .search-toolbar {
-      border-radius: 2px;
-      padding: 10px 15px;
-      background: #fbfbfb;
-      border-bottom: 1px solid #f4f4f4;
-      box-shadow: none;
-      margin-top: 0;
-      text-align: center;
-
-      .action-btn {
-        padding: 6px 16px;
-        margin-right: 10px;
-        border-radius: 2px;
-        font-size: 14px;
-      }
-
-      .copyright {
-        position: fixed;
-        display: block;
-        color: #888;
-        font-size: 12px;
-        padding: 20px 10px;
-        line-height: 21px;
-        bottom: 0;
-
-        &:before {
-          color: #888;
-          font-size: 12px;
-        }
-      }
-    }
-  }
-}
-
 /* wly-table-action-dialog */
 .wly-table-action-dialog {
   position: fixed;
@@ -766,7 +565,7 @@ label {
     padding: 5px;
 
     &:hover {
-      color: #03a9f4;
+      color: #1a73e8;
     }
   }
 

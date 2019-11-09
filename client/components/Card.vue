@@ -91,8 +91,8 @@ export default class Card extends Vue {}
 }
 
 .card-success {
-  background-color: #32c787;
-  border-color: #32c787
+  background-color: #1a73e8;
+  border-color: #1a73e8
 }
 
 .card-success .card-footer,.card-success .card-header {
@@ -117,37 +117,8 @@ export default class Card extends Vue {}
   background-color: transparent
 }
 
-.card-danger {
-  background-color: #ff5652;
-  border-color: #ff5652
-}
-
 .breadcrumb,.card-danger .card-footer,.card-danger .card-header,.card-inverse .card-footer,.card-inverse .card-header,.card-outline-danger,.card-outline-info,.card-outline-primary,.card-outline-secondary,.card-outline-success,.card-outline-warning {
   background-color: transparent
-}
-
-.card-outline-primary {
-  border-color: #2196F3
-}
-
-.card-outline-secondary {
-  border-color: #efefef
-}
-
-.card-outline-info {
-  border-color: #00BCD4
-}
-
-.card-outline-success {
-  border-color: #32c787
-}
-
-.card-outline-warning {
-  border-color: #ffc107
-}
-
-.card-outline-danger {
-  border-color: #ff5652
 }
 
 .card-inverse {

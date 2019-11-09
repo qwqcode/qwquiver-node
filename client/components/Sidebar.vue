@@ -157,7 +157,7 @@ export default class Sidebar extends Vue {}
     ul > li {
       &:hover > a,
       &.active > a {
-        color: #32c787;
+        color: #1a73e8;
       }
 
       & > a {
