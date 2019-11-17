@@ -7,7 +7,7 @@
       </h2>
       <small class="card-subtitle">本次考试共有 {{ data.total }} 人参加</small>
       <div class="actions">
-        <span onclick="wlySearch.showPanel()" class="actions__item show-top-badge">
+        <span class="actions__item show-top-badge" @click="$searchLayer.toggle()">
           <i class="zmdi zmdi-search"></i>
           <span>搜索</span>
         </span>

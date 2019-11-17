@@ -12,7 +12,7 @@
       <div class="right">
         <ul class="actions-btn-bar main-bar">
           <li>
-            <a onclick="wlySearch.showPanel()">
+            <a @click="$searchLayer.toggle()">
               <i class="zmdi zmdi-search"></i>
               <span>搜索</span>
             </a>

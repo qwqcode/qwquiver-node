@@ -1,29 +1,31 @@
 <template>
-  <div class="search-panel">
+  <div v-if="isShow" class="search-panel">
     <div class="inner">
       <div class="type-switch">
         <span
-          v-for="(iLabel, iType) in queryTypeList"
+          v-for="(iLabel, iType) in searchTypeList"
           :key="iType"
-          :class="{ active: iType === queryType }"
-          @click="queryType = iType"
+          :class="{ active: iType === searchType }"
+          @click="searchType = iType"
         >{{ iLabel }}</span>
       </div>
-      <form :class="`query-type-${queryType}`" class="search-form">
-        <div v-if="queryType === 'Name'">
+      <form :class="`search-type-${searchType}`" class="search-form">
+        <div v-if="searchType === 'Name'">
           <button type="submit">
             <i class="zmdi zmdi-search"></i>
           </button>
           <input
+            ref="SearchInput"
             type="text"
-            name="queryData"
+            name="searchData"
             placeholder="搜索..."
-            required="required"
             autocomplete="off"
+            required
+            autofocus
           />
         </div>
 
-        <div v-if="queryType === 'SchoolClass'">
+        <div v-if="searchType === 'SchoolClass'">
           <LoadingLayer ref="scLoading" />
           <div v-if="!!sc && !!sc.data" class="school-class-list">
             <div class="list school-list">
@@ -53,17 +55,61 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'nuxt-property-decorator'
-import LoadingLayer from './LoadingLayer.vue'
+import LoadingLayer from '../LoadingLayer.vue'
 import { AllSchoolApiData } from '~~/common/interfaces/api/AllSchoolApi'
+import $ from 'jquery'
 
-type QueryType = 'Name' | 'SchoolClass'
+type SearchType = 'Name' | 'SchoolClass'
+const OutClickEvtName = 'click.SearchLayer'
 
 @Component({
   components: { LoadingLayer }
 })
-export default class SearchPanel extends Vue {
-  queryType: QueryType = 'Name'
-  queryTypeList: { [key in QueryType]: string } = {
+export default class SearchLayer extends Vue {
+  created () {
+    Vue.prototype.$searchLayer = this
+  }
+
+  mounted () {
+    this.bindOutClickEvt()
+  }
+
+  isShow = false
+  show () {
+    this.isShow = true
+    this.bindOutClickEvt()
+    window.setTimeout(() => {
+      (this.$refs.SearchInput as HTMLInputElement).focus()
+    }, 80)
+  }
+
+  hide () {
+    this.isShow = false
+    this.unbindOutClickEvt()
+  }
+
+  toggle () {
+    this.isShow ? this.hide() : this.show()
+    this.isShow ? this.bindOutClickEvt() : this.unbindOutClickEvt()
+  }
+
+  bindOutClickEvt () {
+    $(window).unbind(OutClickEvtName)
+    window.setTimeout(() => {
+      $(window).bind(OutClickEvtName, (evt) => {
+        if (this.isShow && !$(evt.target).closest('.search-panel').length) {
+          this.hide()
+        }
+      })
+    }, 80)
+  }
+
+  unbindOutClickEvt () {
+    $(window).unbind(OutClickEvtName)
+  }
+
+  searchType: SearchType = 'Name'
+  searchTypeList: { [key in SearchType]: string } = {
     Name: '姓名',
     SchoolClass: '学校班级'
   }
@@ -74,12 +120,12 @@ export default class SearchPanel extends Vue {
     openedSchool: string | null
   } | null = null
 
-  @Watch('queryType')
-  onQueryTypeChanged(queryType: QueryType) {
-    if (queryType === 'Name') {
+  @Watch('searchType')
+  onSearchTypeChanged(searchType: SearchType) {
+    if (searchType === 'Name') {
     }
 
-    if (queryType === 'SchoolClass') {
+    if (searchType === 'SchoolClass') {
       this.sc = null
       this.$nextTick(async () => {
         this.scLoading = this.$refs.scLoading as LoadingLayer
@@ -141,13 +187,12 @@ export default class SearchPanel extends Vue {
     cursor: pointer;
 
     &.active {
+      z-index: 2;
       background: #fff;
       color: #1a73e8;
-      z-index: 2;
     }
 
     &:hover {
-      z-index: 2;
       background: #fff;
     }
   }
@@ -161,7 +206,7 @@ export default class SearchPanel extends Vue {
   width: 100%;
   transition: height 0.2s ease-in-out;
 
-  &.query-type-Name {
+  &.search-type-Name {
     height: 60px;
 
     & > div {
@@ -197,7 +242,7 @@ export default class SearchPanel extends Vue {
     }
   }
 
-  &.query-type-SchoolClass {
+  &.search-type-SchoolClass {
     height: 300px;
 
     .school-class-list {

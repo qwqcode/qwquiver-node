@@ -1,10 +1,11 @@
 <template>
   <div>
+    <!-- eslint-disable-next-line vue/attributes-order -->
+    <component v-for="layer in AllLayersNameList" :is="layer" :key="layer" />
     <TopHeader />
 
     <div class="wrap">
       <Sidebar />
-      <SearchPanel />
 
       <div class="main-content-area">
         <nuxt class="content-inner" />
@@ -16,14 +17,16 @@
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
 import TopHeader from '@/components/TopHeader.vue'
-import SearchPanel from '@/components/SearchPanel.vue'
 import Sidebar from '@/components/Sidebar.vue'
+import Layers from '@/components/layers'
 
 @Component({
-  components: { TopHeader, SearchPanel, Sidebar }
+  components: { TopHeader, Sidebar, ...Layers }
 })
 export default class Default extends Vue {
-
+  get AllLayersNameList () {
+    return Object.keys(Layers)
+  }
 }
 </script>
 
