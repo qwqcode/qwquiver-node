@@ -3,18 +3,18 @@
     <div class="widget link-list">
       <h2 class="list-label">基本</h2>
       <ul>
-        <li class="active">
-          <a href="/">
+        <li :class="{ active: $route.name === 'index' }">
+          <a @click="$router.replace('/')">
             <i class="zmdi zmdi-view-carousel"></i> 总览
           </a>
         </li>
-        <li>
-          <a href="/site/charts">
+        <li :class="{ active: $route.name === 'charts' }">
+          <a @click="$router.replace('/charts')">
             <i class="zmdi zmdi-equalizer"></i> 趋势
           </a>
         </li>
-        <li>
-          <a href="/site/about">
+        <li :class="{ active: $route.name === 'about' }">
+          <a @click="$router.replace('/about')">
             <i class="zmdi zmdi-info-outline"></i> 关于
           </a>
         </li>

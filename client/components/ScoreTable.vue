@@ -106,6 +106,11 @@ export default class ScoreTable extends Vue {
   loading!: LoadingLayer
 
   created () {
+    Vue.prototype.$scoreTable = this
+  }
+
+  destroyed () {
+    Vue.prototype.$scoreTable = undefined
   }
 
   mounted () {
@@ -143,18 +148,19 @@ export default class ScoreTable extends Vue {
     }
   }
 
-  fetchData (params: QueryApiParams) {
-    this.$router.replace({ query: params as any })
+  fetchData (params: QueryApiParams, initialize = false) {
+    const reqParams: QueryApiParams = !initialize ? {...this.params, ...params} : params
+    this.$router.replace({ query: reqParams as any })
   }
 
   async switchPage (pageNum: number) {
     if (!this.data || pageNum <= 0 || pageNum > this.data.lastPage) return
-    await this.fetchData({ ...this.params, ...{ page: pageNum } })
+    await this.fetchData({ page: pageNum })
   }
 
   async switchSort (fieldName: F) {
     if (!this.data) return
-    await this.fetchData({ ...this.params, ...{ page: 1, sort: JSON.stringify({ [fieldName]: ((this.data.sortList[fieldName] === -1) ? 1 : -1) }) } })
+    await this.fetchData({ page: 1, sort: JSON.stringify({ [fieldName]: ((this.data.sortList[fieldName] === -1) ? 1 : -1) }) })
   }
 
   get visiblePageBtn () {

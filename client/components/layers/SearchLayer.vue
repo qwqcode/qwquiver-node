@@ -1,62 +1,68 @@
 <template>
-  <div v-if="isShow" class="search-panel">
-    <div class="inner">
-      <div class="type-switch">
-        <span
-          v-for="(iLabel, iType) in searchTypeList"
-          :key="iType"
-          :class="{ active: iType === searchType }"
-          @click="searchType = iType"
-        >{{ iLabel }}</span>
-      </div>
-      <form :class="`search-type-${searchType}`" class="search-form">
-        <div v-if="searchType === 'Name'">
-          <button type="submit">
-            <i class="zmdi zmdi-search"></i>
-          </button>
-          <input
-            ref="SearchInput"
-            type="text"
-            name="searchData"
-            placeholder="搜索..."
-            autocomplete="off"
-            required
-            autofocus
-          />
+  <transition name="fade">
+    <div v-if="isShow" class="search-panel" style="animation-duration: 0.14s">
+      <div class="inner">
+        <div class="type-switch">
+          <span
+            v-for="(iLabel, iType) in searchTypeList"
+            :key="iType"
+            :class="{ active: iType === searchType }"
+            @click="searchType = iType"
+          >{{ iLabel }}</span>
         </div>
+        <form :class="`search-type-${searchType}`" class="search-form" @submit.prevent="submit">
+          <div v-if="searchType === 'Name'">
+            <button type="submit">
+              <i class="zmdi zmdi-search"></i>
+            </button>
+            <input
+              ref="SearchInput"
+              v-model="searchData.NAME"
+              type="text"
+              placeholder="搜索..."
+              autocomplete="off"
+              required
+              autofocus
+            />
+          </div>
 
-        <div v-if="searchType === 'SchoolClass'">
-          <LoadingLayer ref="scLoading" />
-          <div v-if="!!sc && !!sc.data" class="school-class-list">
-            <div class="list school-list">
-              <span
-                v-for="school in Object.keys(sc.data.school)"
-                :key="school"
-                :class="{ active: school === sc.openedSchool }"
-                class="item"
-                @click="sc.openedSchool = school"
-              >{{ school }}</span>
-            </div>
-            <div class="list class-list">
-              <template v-if="sc.openedSchool !== null && !!sc.data.school[sc.openedSchool]">
+          <div v-if="searchType === 'SchoolClass'">
+            <LoadingLayer ref="scLoading" />
+            <div v-if="!!sc && !!sc.data" class="school-class-list">
+              <div class="list school-list">
                 <span
-                  v-for="className in sc.data.school[sc.openedSchool]"
-                  :key="className"
+                  v-for="school in Object.keys(sc.data.school)"
+                  :key="school"
+                  :class="{ active: school === sc.openedSchool }"
                   class="item"
-                >{{ className }}</span>
-              </template>
+                  @click="sc.openedSchool = school"
+                >{{ school }}</span>
+              </div>
+              <div class="list class-list">
+                <template v-if="sc.openedSchool !== null && !!sc.data.school[sc.openedSchool]">
+                  <span
+                    v-for="className in sc.data.school[sc.openedSchool]"
+                    :key="className"
+                    class="item"
+                    @click="scSubmit(sc.openedSchool, className)"
+                  >{{ className }}</span>
+                </template>
+              </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from '../LoadingLayer.vue'
+import F, { ScoreData } from '~~/common/interfaces/field'
+import { QueryApiData, QueryApiParams } from '~~/common/interfaces/api/QueryApi'
 import { AllSchoolApiData } from '~~/common/interfaces/api/AllSchoolApi'
+import _ from 'lodash'
 import $ from 'jquery'
 
 type SearchType = 'Name' | 'SchoolClass'
@@ -113,6 +119,7 @@ export default class SearchLayer extends Vue {
     Name: '姓名',
     SchoolClass: '学校班级'
   }
+  searchData: { [key in F]?: string } = {}
 
   scLoading!: LoadingLayer
   sc: {
@@ -122,6 +129,8 @@ export default class SearchLayer extends Vue {
 
   @Watch('searchType')
   onSearchTypeChanged(searchType: SearchType) {
+    this.searchData = {}
+
     if (searchType === 'Name') {
     }
 
@@ -139,6 +148,25 @@ export default class SearchLayer extends Vue {
         this.scLoading.hide()
       })
     }
+  }
+
+  submit () {
+    const reqParams: QueryApiParams = { where: JSON.stringify(this.searchData), page: 1 }
+    if (this.$scoreTable !== undefined) {
+      this.$scoreTable.fetchData(reqParams)
+      this.$nextTick(() => {
+        this.searchData = {}
+        this.hide()
+      })
+    } else {
+      // this.$router.replace({ path: '/', query: reqParams as any })
+    }
+  }
+
+  scSubmit (schoolName: string, className: string) {
+    this.searchData.SCHOOL = schoolName
+    this.searchData.CLASS = className
+    this.submit()
   }
 }
 </script>
@@ -297,7 +325,7 @@ export default class SearchLayer extends Vue {
 
             &:hover {
               color: #1a73e8;
-              background: rgba(66,133,244,.12);
+              background: rgba(66, 133, 244, 0.12);
             }
           }
         }

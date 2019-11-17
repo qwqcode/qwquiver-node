@@ -51,12 +51,16 @@ export default class Actions {
     const db = getDbByReq(req, res)
     if (!db) return
 
-    let conditionList: { [key in F]?: string } = {}
+    let conditionList: { [key in F]?: string|RegExp } = {}
     let sortList: { [key in F]?: 1|-1 } = {}
 
     try {
-        if (whereJsonStr) conditionList = JSON.parse(whereJsonStr)
-        if (sortJsonStr) sortList = JSON.parse(sortJsonStr)
+      if (whereJsonStr) conditionList = JSON.parse(whereJsonStr)
+      if (sortJsonStr) sortList = JSON.parse(sortJsonStr)
+
+      if (conditionList.NAME) {
+        conditionList.NAME = new RegExp(`${conditionList.NAME}`, 'g')
+      }
     } catch {
       Utils.error(res, `参数 JSON 解析错误`)
       return
