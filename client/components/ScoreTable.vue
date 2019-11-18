@@ -3,7 +3,9 @@
     <div v-if="data !== null" class="card-header">
       <h2 class="card-title" data-wlytable="title">
         一中 - 高一下 期末 [理科] - 全市考生成绩
-        <span style="font-size: 13px;vertical-align: bottom;">[页码 {{ data.page }}/{{ data.lastPage }}]</span>
+        <span
+          style="font-size: 13px;vertical-align: bottom;"
+        >[页码 {{ data.page }}/{{ data.lastPage }}]</span>
       </h2>
       <small class="card-subtitle">本次考试共有 {{ data.total }} 人参加</small>
       <div class="actions">
@@ -11,7 +13,7 @@
           <i class="zmdi zmdi-search"></i>
           <span>搜索</span>
         </span>
-        <span onclick="wlyTableDataSave.show()" class="actions__item">
+        <span class="actions__item" @click="$refs.tableDataDownloadDialog.show()">
           <i class="zmdi zmdi-download"></i>
           <span>下载</span>
         </span>
@@ -19,11 +21,11 @@
           <i class="zmdi zmdi-print"></i>
           <span>打印</span>
         </span>
-        <span onclick="wlyTable.DisplayController.show()" class="actions__item">
+        <span class="actions__item" @click="$refs.tableCtrlDialog.show()">
           <i class="zmdi zmdi-format-paint"></i>
           <span>表格调整</span>
         </span>
-        <span onclick="window.wlyTable.showDataCounter()" class="actions__item">
+        <span class="actions__item" @click="$refs.tableDataCounterDialog.show()">
           <i class="zmdi zmdi-flash"></i>
           <span>平均分</span>
         </span>
@@ -44,8 +46,15 @@
           <table class="table table-striped table-hover" style="width: 1868.29px;">
             <thead>
               <tr>
-                <th v-for="(fieldName, i) in data.fieldNameList" :key="i" @click="switchSort(fieldName)">
-                  <span :class="getFieldItemClass(fieldName)" :title="getFieldItemHoverTitle(fieldName)">{{ getFieldItemLabel(fieldName) }}</span>
+                <th
+                  v-for="(fieldName, i) in data.fieldNameList"
+                  :key="i"
+                  @click="switchSort(fieldName)"
+                >
+                  <span
+                    :class="getFieldItemClass(fieldName)"
+                    :title="getFieldItemHoverTitle(fieldName)"
+                  >{{ getFieldItemLabel(fieldName) }}</span>
                 </th>
               </tr>
             </thead>
@@ -55,7 +64,10 @@
           <table class="table table-striped table-hover" style="margin-top: -47.8571px;">
             <thead>
               <tr>
-                <th v-for="(fieldName, i) in data.fieldNameList" :key="i">{{ getFieldItemLabel(fieldName) }}</th>
+                <th
+                  v-for="(fieldName, i) in data.fieldNameList"
+                  :key="i"
+                >{{ getFieldItemLabel(fieldName) }}</th>
               </tr>
             </thead>
             <tbody>
@@ -69,11 +81,27 @@
         </div>
         <div ref="tPagination" class="wly-table-pagination">
           <div class="paginate-simple">
-            <a :class="{ disabled: data.page-1 <= 0 }" class="paginate-button previous" title="上一页" @click="switchPage(data.page-1)"></a>
+            <a
+              :class="{ disabled: data.page-1 <= 0 }"
+              class="paginate-button previous"
+              title="上一页"
+              @click="switchPage(data.page-1)"
+            ></a>
             <span>
-              <a v-for="(pageNum, i) in visiblePageBtn" :key="i" :class="{ current: pageNum === data.page }" class="paginate-button" @click="switchPage(pageNum)">{{ pageNum }}</a>
+              <a
+                v-for="(pageNum, i) in visiblePageBtn"
+                :key="i"
+                :class="{ current: pageNum === data.page }"
+                class="paginate-button"
+                @click="switchPage(pageNum)"
+              >{{ pageNum }}</a>
             </span>
-            <a :class="{ disabled: data.page+1 > data.lastPage }" class="paginate-button next" title="下一页" @click="switchPage(data.page+1)"></a>
+            <a
+              :class="{ disabled: data.page+1 > data.lastPage }"
+              class="paginate-button next"
+              title="下一页"
+              @click="switchPage(data.page+1)"
+            ></a>
             <a
               class="paginate-button"
               title="最后一页"
@@ -84,12 +112,62 @@
       </div>
     </div>
     <LoadingLayer ref="tLoading" />
+
+    <ScoreTableDialog ref="tableCtrlDialog" title="表格显示调整">
+      <div class="table-ctrl-dialog">
+          <span class="dialog-label">点按下列方块来 显示 / 隐藏 字段</span>
+          <div v-if="data !== null" class="field-list">
+            <span
+              v-for="(fieldName, i) in data.fieldNameList"
+              :key="i"
+              class="field-item active"
+            >{{ getFieldItemLabel(fieldName) }}</span>
+          </div>
+          <span class="dialog-label">每页显示项目数量 （数字不宜过大）</span>
+          <div class="page-per-show">
+            <input type="number" class="page-per-show-input" placeholder="每页显示数" min="1" value="50" />
+          </div>
+          <span class="dialog-label">表格字体大小调整</span>
+          <div class="table-font-size-control">
+            <span class="font-size-minus">-</span>
+            <span class="font-size-value">15</span>
+            <span class="font-size-plus">+</span>
+          </div>
+      </div>
+    </ScoreTableDialog>
+
+    <ScoreTableDialog ref="tableDataDownloadDialog" title="保存数据为电子表格">
+      <span class="dialog-label">保存 一中 - 高一下 期末 [理科] 的 全市考生成绩 为电子表格</span>
+      <span class="dialog-btn" data-dialog-func="save-now">保存 仅第 1 页 数据</span>
+      <span class="dialog-btn" data-dialog-func="save-now-noPaging">保存 第 1~10 页 数据</span>
+      <span class="dialog-label">保存 一中 - 高一下 期末 [理科] 全部数据为电子表格</span>
+      <span class="dialog-btn" data-dialog-func="save-noPaging">保存 全市成绩</span>
+    </ScoreTableDialog>
+
+    <ScoreTableDialog ref="tableDataCounterDialog" title="数据统计">
+      <div class="table-data-counter">
+      <span class="dialog-label">数据 "全市考生成绩" 平均值</span>
+      <span class="data-item">
+        <span class="data-name">总分</span>
+        <span class="data-value">470.775406504065</span>
+      </span>
+      <span class="data-item">
+        <span class="data-name">语文</span>
+        <span class="data-value">97.96036585365853</span>
+      </span>
+      <span class="data-item">
+        <span class="data-name">数学</span>
+        <span class="data-value">94.47154471544715</span>
+      </span>
+      </div>
+    </ScoreTableDialog>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
+import ScoreTableDialog from './ScoreTableDialog.vue'
 import F, { ScoreData } from '~~/common/interfaces/field'
 import { FTrans } from '~~/common/interfaces/field/FieldTrans'
 import { QueryApiData, QueryApiParams } from '~~/common/interfaces/api/QueryApi'
@@ -97,7 +175,7 @@ import $ from 'jquery'
 import _ from 'lodash'
 
 @Component({
-  components: { LoadingLayer }
+  components: { LoadingLayer, ScoreTableDialog }
 })
 export default class ScoreTable extends Vue {
   data: QueryApiData | null = null
@@ -141,15 +219,19 @@ export default class ScoreTable extends Vue {
 
     this.loading.show()
     this.params = query
-    const respData = await this.$axios.$get('./api/query', { params: this.params })
+    const respData = await this.$axios.$get('./api/query', {
+      params: this.params
+    })
     this.loading.hide()
     if (respData.success) {
       this.data = respData.data
     }
   }
 
-  fetchData (params: QueryApiParams, initialize = false) {
-    const reqParams: QueryApiParams = !initialize ? {...this.params, ...params} : params
+  fetchData(params: QueryApiParams, initialize = false) {
+    const reqParams: QueryApiParams = !initialize
+      ? { ...this.params, ...params }
+      : params
     this.$router.replace({ query: reqParams as any })
   }
 
@@ -160,7 +242,12 @@ export default class ScoreTable extends Vue {
 
   async switchSort (fieldName: F) {
     if (!this.data) return
-    await this.fetchData({ page: 1, sort: JSON.stringify({ [fieldName]: ((this.data.sortList[fieldName] === -1) ? 1 : -1) }) })
+    await this.fetchData({
+      page: 1,
+      sort: JSON.stringify({
+        [fieldName]: this.data.sortList[fieldName] === -1 ? 1 : -1
+      })
+    })
   }
 
   get visiblePageBtn () {
@@ -180,7 +267,12 @@ export default class ScoreTable extends Vue {
   }
 
   getHeight () {
-    return ($(window).height() || 0) - ($('.main-navbar').outerHeight(true)  || 0) - ($('.card .card-header').outerHeight(true) || 0) - 80
+    return (
+      ($(window).height() || 0) -
+      ($('.main-navbar').outerHeight(true) || 0) -
+      ($('.card .card-header').outerHeight(true) || 0) -
+      80
+    )
   }
 
   adjustDisplay () {
@@ -214,16 +306,15 @@ export default class ScoreTable extends Vue {
     )
 
     // 获取 body table thead tr 中每个 th 对象
-    const bodyThItems = bodyTableEl.find('> thead > tr:first-child:not(.no-records-found) > *')
-    $.each(
-      bodyThItems,
-      (i: number, item: any) => {
-        // 逐个设置 head table 中每个 th 的宽度 === body th 的宽度
-        headerTableEl
-          .find(`> thead th:nth-child(${Number(i) + 1})`)
-          .width($(item).width() || '')
-      }
+    const bodyThItems = bodyTableEl.find(
+      '> thead > tr:first-child:not(.no-records-found) > *'
     )
+    $.each(bodyThItems, (i: number, item: any) => {
+      // 逐个设置 head table 中每个 th 的宽度 === body th 的宽度
+      headerTableEl
+        .find(`> thead th:nth-child(${Number(i) + 1})`)
+        .width($(item).width() || '')
+    })
     headerTableEl.width((bodyTableEl.outerWidth(true) || 0) - 2) // minus the 2px border-width
   }
 
@@ -235,15 +326,15 @@ export default class ScoreTable extends Vue {
     if (!this.data) return ''
     const sortType = this.data.sortList[fieldName]
     if (typeof sortType !== 'number') return ''
-    return (sortType === 1) ? 'sort-asc' : 'sort-desc'
+    return sortType === 1 ? 'sort-asc' : 'sort-desc'
   }
 
   getFieldItemHoverTitle (fieldName: F) {
     if (!this.data) return ''
     const sortType = this.data.sortList[fieldName]
-    let title = `依 总分 ${(sortType === -1) ? '升序' : '降序'} `
+    let title = `依 总分 ${sortType === -1 ? '升序' : '降序'} `
     if (typeof sortType === 'number')
-      title += `[当前为 ${(sortType === -1) ? '降序' : '升序'}]`
+      title += `[当前为 ${sortType === -1 ? '降序' : '升序'}]`
     return title
   }
 }
@@ -327,7 +418,7 @@ a.desc:after {
   position: relative;
   top: 1px;
   display: inline-block;
-  font-family: "Glyphicons Halflings";
+  font-family: 'Glyphicons Halflings';
   font-style: normal;
   font-weight: normal;
   line-height: 1;
@@ -335,27 +426,27 @@ a.desc:after {
 }
 
 a.asc:after {
-  content: /*"\e113"*/ "\e151";
+  content: /*"\e113"*/ '\e151';
 }
 
 a.desc:after {
-  content: /*"\e114"*/ "\e152";
+  content: /*"\e114"*/ '\e152';
 }
 
 .sort-numerical a.asc:after {
-  content: "\e153";
+  content: '\e153';
 }
 
 .sort-numerical a.desc:after {
-  content: "\e154";
+  content: '\e154';
 }
 
 .sort-ordinal a.asc:after {
-  content: "\e155";
+  content: '\e155';
 }
 
 .sort-ordinal a.desc:after {
-  content: "\e156";
+  content: '\e156';
 }
 
 .table th,
@@ -381,7 +472,8 @@ label {
     th span {
       cursor: pointer;
 
-      &.sort-desc, &.sort-asc {
+      &.sort-desc,
+      &.sort-asc {
         color: #1a73e8;
 
         &:after {
@@ -392,10 +484,10 @@ label {
       }
 
       &.sort-desc:after {
-        content: "\f2fe";
+        content: '\f2fe';
       }
       &.sort-asc:after {
-        content: "\f303";
+        content: '\f303';
       }
     }
   }
@@ -518,11 +610,11 @@ label {
     }
 
     &.previous:before {
-      content: "\f2fa";
+      content: '\f2fa';
     }
 
     &.next:before {
-      content: "\f2fb";
+      content: '\f2fb';
     }
 
     &.disabled {
@@ -532,186 +624,6 @@ label {
     &.disabled:focus,
     &.disabled:hover {
       color: #8a8a8a;
-    }
-  }
-}
-
-/* wly-table-action-dialog */
-.wly-table-action-dialog {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 999;
-  display: flex;
-  align-items: center;
-
-  .wly-table-action-dialog-inner {
-    background-color: #fff;
-    margin: 0 auto;
-    padding: 20px;
-    border-radius: 4px;
-    width: 400px;
-  }
-
-  .dialog-title {
-    border-bottom: 1px solid #f4f4f4;
-    padding-bottom: 15px;
-  }
-
-  .title-text {
-    font-size: 17px;
-  }
-
-  .close-btn {
-    float: right;
-    cursor: pointer;
-    padding: 5px;
-
-    &:hover {
-      color: #1a73e8;
-    }
-  }
-
-  .dialog-body {
-    color: #5e5e5e;
-  }
-
-  .dialog-label {
-    color: #7d7d7d;
-    margin-bottom: 10px;
-    display: block;
-    font-weight: normal;
-    word-break: break-all;
-    white-space: normal;
-    text-align: left;
-    border-left: 1px solid #2196f3;
-    padding-left: 15px;
-    border-radius: 0;
-    margin-top: 30px;
-    margin-bottom: 10px;
-
-    &:first-child {
-      margin-top: 20px;
-    }
-  }
-
-  .dialog-btn {
-    display: block;
-    padding: 10px 15px;
-    text-align: center;
-    box-shadow: 0 1px 4px #d8d8d8;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: 0.3s all;
-    margin-bottom: 15px;
-
-    &:hover {
-      color: #2196f3;
-    }
-  }
-
-  &.display-controller {
-    .field-list {
-      .field-item {
-        position: relative;
-        display: inline-block;
-        padding: 6px 20px;
-        cursor: pointer;
-        margin: 0 0 13px 10px;
-        border-radius: 3px;
-        box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
-
-        &:after {
-          font-family: Material-Design-Iconic-Font;
-          position: absolute;
-          top: -10px;
-          right: 0;
-          font-size: 18px;
-          color: #f78787;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.19);
-        }
-
-        &:not(.active):after {
-          content: "\f15b";
-        }
-      }
-    }
-
-    .page-per-show-input {
-      border-radius: 3px;
-      border: 1px solid #eee;
-      background: #fbfbfb;
-      padding: 5px 15px;
-      width: 100%;
-      margin-top: 10px;
-      text-align: center;
-      outline: none;
-      transition: 0.3s all;
-
-      &:focus {
-        border: 1px solid #2196f3;
-      }
-    }
-
-    .table-font-size-control {
-      text-align: center;
-      font-size: 18px;
-      margin-top: 15px;
-    }
-
-    .table-font-size-control .font-size-minus {
-      border-radius: 5px 0 0 5px;
-    }
-
-    .table-font-size-control .font-size-value {
-      font-weight: bold;
-    }
-
-    .table-font-size-control .font-size-plus {
-      border-radius: 0 5px 5px 0;
-    }
-
-    .table-font-size-control > span {
-      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
-      padding: 4px 17px;
-      display: inline-block;
-      transition: 0.3s all;
-    }
-
-    .table-font-size-control .font-size-minus,
-    .table-font-size-control .font-size-plus {
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .table-font-size-control .font-size-minus:hover,
-    .table-font-size-control .font-size-plus:hover {
-      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.58);
-      color: #2196f3;
-    }
-  }
-
-  &.wly-table-data-counter {
-    .data-item {
-      display: flex;
-      padding: 10px 20px;
-
-      &:not(:last-child) {
-        border-bottom: 1px solid #f4f4f4;
-      }
-    }
-
-    .data-name {
-      flex-basis: 50px;
-    }
-
-    .data-value {
-      flex: 1;
-      padding-left: 20px;
-      border-left: 1px solid #f4f4f4;
     }
   }
 }
