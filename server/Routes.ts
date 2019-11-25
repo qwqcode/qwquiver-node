@@ -1,12 +1,10 @@
-import Actions from './Actions'
 import express, { Router } from 'express'
 
 const router: Router = Router()
-const actions = new Actions()
 
-router.get('/', actions.index)
-router.get('/conf', actions.conf)
-router.get('/query', actions.query)
-router.get('/allSchoolClass', actions.allSchoolClass)
+router.get('/', require('./actions/index').default)
+router.get('/conf', require('./actions/conf').default)
+router.get('/query', require('./actions/query').default)
+router.get('/allSchoolClass', require('./actions/allSchoolClass').default)
 
 export default router

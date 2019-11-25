@@ -1,4 +1,6 @@
 import PaginatedData from '../common/interfaces/api/PaginatedData'
+import ApiCommonParams from '../common/interfaces/api/ApiCommonParams'
+import Database from './database'
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
 
@@ -24,5 +26,21 @@ export default class Utils {
       lastPage: Math.ceil(items.length / pgSize),
       list: pagedItems
     }
+  }
+
+  static getDbByReq (req: Request, res: Response) {
+    const { db: dbName } = req.query as ApiCommonParams
+    if (!dbName) {
+      Utils.error(res, `未选择数据`)
+      return null
+    }
+
+    const db = Database.getScoreDb(dbName)
+    if (!db) {
+      Utils.error(res, `未找到数据 ${dbName || ''}`)
+      return null
+    }
+
+    return db
   }
 }
