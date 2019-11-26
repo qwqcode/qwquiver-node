@@ -27,9 +27,9 @@
     "types": [
       "@nuxt/types",
       "@nuxtjs/axios",
-      "@types/node"
+      "@types/node",
+      "webpack-env"
     ]
   },
-  "exclude": ["node_modules", ".nuxt", "dist"],
-  "include": ["./client/types/**/*"]
+  "exclude": ["node_modules", ".nuxt", "dist", "./cmd"]
 }

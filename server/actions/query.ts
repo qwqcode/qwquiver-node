@@ -14,8 +14,8 @@ export default function query (req: Request, res: Response) {
     sort: sortJsonStr
   } = req.query as QueryApiParams
 
-  const db = Utils.getDbByReq(req, res)
-  if (!db) return
+  const table = Utils.getTableByReq(req, res)
+  if (!table) return
 
   let conditionList: { [key in F]?: string|RegExp } = {}
   let sortList: { [key in F]?: 1|-1 } = {}
@@ -38,7 +38,7 @@ export default function query (req: Request, res: Response) {
   const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
 
-  db.find(conditionList).sort(sortList).exec((err: Error, rawData) => {
+  table.data.find(conditionList).sort(sortList).exec((err: Error, rawData) => {
     const scoreDbData: ScoreData[] = []
     const fieldNameList: F[] = []
     rawData.forEach((rawItem) => {

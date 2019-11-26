@@ -1,6 +1,7 @@
 import PaginatedData from '../common/interfaces/api/PaginatedData'
 import ApiCommonParams from '../common/interfaces/api/ApiCommonParams'
-import Database from './database'
+import Database from './Database'
+import Table, { CONF_FIELD } from './Table'
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
 
@@ -28,19 +29,32 @@ export default class Utils {
     }
   }
 
-  static getDbByReq (req: Request, res: Response) {
+  static getTableByReq (req: Request, res: Response) {
     const { db: dbName } = req.query as ApiCommonParams
     if (!dbName) {
       Utils.error(res, `未选择数据`)
       return null
     }
 
-    const db = Database.getScoreDb(dbName)
+    const db = Database.getTable(dbName)
     if (!db) {
       Utils.error(res, `未找到数据 ${dbName || ''}`)
       return null
     }
 
     return db
+  }
+
+  static getAllTableConfObj () {
+    const obj = {}
+    _.forEach(Database.tableList, (table, name) => {
+      obj[name] = {}
+      _.forEach(CONF_FIELD, (field) => {
+        const val = table[field]
+        if (typeof val === 'undefined') return
+        obj[name][field] = val
+      })
+    })
+    return obj
   }
 }

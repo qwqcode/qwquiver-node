@@ -1,4 +1,4 @@
-import Database from './database'
+import Database from './Database'
 import Api from './Routes'
 import express from 'express'
 import _ from 'lodash'

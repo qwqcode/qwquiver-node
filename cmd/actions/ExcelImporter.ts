@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx'
 import F, { ScoreData } from '../../common/interfaces/field'
 import { transDict as FT } from '../../common/interfaces/field/FieldTrans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../common/interfaces/field/FieldGrp'
-import Database, { SCORE_DB_PATH } from '../../server/database'
+import Database, { SCORE_DB_PATH } from '../../server/Database'
 import DataStore from 'nedb'
 import _ from 'lodash'
 
