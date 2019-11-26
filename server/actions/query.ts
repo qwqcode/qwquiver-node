@@ -7,7 +7,7 @@ import express, { Router, Request, Response } from 'express'
 
 export default function query (req: Request, res: Response) {
   const {
-    db: dbName,
+    tb: tbName,
     where: whereJsonStr,
     page: pageStr,
     pagePer: pagePerStr,
@@ -39,7 +39,7 @@ export default function query (req: Request, res: Response) {
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
 
   table.data.find(conditionList).sort(sortList).exec((err: Error, rawData) => {
-    const scoreDbData: ScoreData[] = []
+    const scoreTbData: ScoreData[] = []
     const fieldNameList: F[] = []
     rawData.forEach((rawItem) => {
       const item: any = {}
@@ -50,14 +50,14 @@ export default function query (req: Request, res: Response) {
             fieldNameList.push(fieldName)
         }
       })
-      scoreDbData.push(item)
+      scoreTbData.push(item)
     })
 
     if (err) {
       Utils.error(res, `数据获取错误 ${err.message}`)
     }
     Utils.success(res, '数据获取成功', <QueryApiData>{
-      ...Utils.getPaginatedItems(scoreDbData, page, pagePer),
+      ...Utils.getPaginatedItems(scoreTbData, page, pagePer),
       fieldNameList,
       conditionList,
       sortList

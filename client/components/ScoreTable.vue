@@ -198,7 +198,7 @@ export default class ScoreTable extends Vue {
     })
 
     let params: QueryApiParams = {
-      db: 'test',
+      tb: 'test',
       page: 1,
       pagePer: 50
     }
@@ -228,21 +228,25 @@ export default class ScoreTable extends Vue {
     }
   }
 
-  fetchData(params: QueryApiParams, initialize = false) {
+  fetchData (params: QueryApiParams, initialize = false) {
     const reqParams: QueryApiParams = !initialize
       ? { ...this.params, ...params }
       : params
     this.$router.replace({ query: reqParams as any })
   }
 
-  async switchPage (pageNum: number) {
-    if (!this.data || pageNum <= 0 || pageNum > this.data.lastPage) return
-    await this.fetchData({ page: pageNum })
+  switchTable (tableName: string) {
+    this.fetchData({ tb: tableName }, true)
   }
 
-  async switchSort (fieldName: F) {
+  switchPage (pageNum: number) {
+    if (!this.data || pageNum <= 0 || pageNum > this.data.lastPage) return
+    this.fetchData({ page: pageNum })
+  }
+
+  switchSort (fieldName: F) {
     if (!this.data) return
-    await this.fetchData({
+    this.fetchData({
       page: 1,
       sort: JSON.stringify({
         [fieldName]: this.data.sortList[fieldName] === -1 ? 1 : -1

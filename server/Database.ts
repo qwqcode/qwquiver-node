@@ -25,8 +25,8 @@ class Database {
   }
 
   loadTableList () {
-    fs.readdirSync(DATA_PATH).filter(o => /\.db$/.test(o)).forEach(fileName => {
-      const name = fileName.replace(/(\.\/|\.db)/g,'')
+    fs.readdirSync(DATA_PATH).filter(o => /\.tb$/.test(o)).forEach(fileName => {
+      const name = fileName.replace(/(\.\/|\.tb)/g,'')
       const table = new Table()
       table.data = new DataStore({ filename: path.join(DATA_PATH, fileName), autoload: true })
       this.tableList[name] = table
@@ -44,7 +44,7 @@ class Database {
           confObj = JSON.parse(fileContent)
         } catch {
           console.error(`JSON 文件语法错误 - "${DATA_CONFIG_PATH}"`)
-          process.abort()
+          process.exit(1)
         }
       }
       _.forEach(confObj, (table: Table, name) => {
@@ -63,6 +63,7 @@ class Database {
   makeNewConfigFile () {
     _.forEach(this.tableList, (table, name) => {
       table.label = name
+      table.grp = '其它'
     })
 
     fs.writeFileSync(DATA_CONFIG_PATH, JSON.stringify(Utils.getAllTableConfObj(), null, '  '), 'utf8')

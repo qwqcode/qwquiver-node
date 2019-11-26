@@ -5,7 +5,7 @@ import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
 
 export default function allSchoolClass (req: Request, res: Response) {
-  const { db: dbName } = req.query as AllSchoolApiParams
+  const { tb: tbName } = req.query as AllSchoolApiParams
 
   const table = Utils.getTableByReq(req, res)
   if (!table) return

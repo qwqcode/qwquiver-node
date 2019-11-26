@@ -30,19 +30,19 @@ export default class Utils {
   }
 
   static getTableByReq (req: Request, res: Response) {
-    const { db: dbName } = req.query as ApiCommonParams
-    if (!dbName) {
+    const { tb: tbName } = req.query as ApiCommonParams
+    if (!tbName) {
       Utils.error(res, `未选择数据`)
       return null
     }
 
-    const db = Database.getTable(dbName)
-    if (!db) {
-      Utils.error(res, `未找到数据 ${dbName || ''}`)
+    const tb = Database.getTable(tbName)
+    if (!tb) {
+      Utils.error(res, `未找到数据 ${tbName || ''}`)
       return null
     }
 
-    return db
+    return tb
   }
 
   static getAllTableConfObj () {

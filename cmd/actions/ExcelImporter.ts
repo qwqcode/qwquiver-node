@@ -4,19 +4,19 @@ import * as XLSX from 'xlsx'
 import F, { ScoreData } from '../../common/interfaces/field'
 import { transDict as FT } from '../../common/interfaces/field/FieldTrans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../common/interfaces/field/FieldGrp'
-import Database, { SCORE_DB_PATH } from '../../server/Database'
+import Database, { DATA_PATH } from '../../server/Database'
 import DataStore from 'nedb'
 import _ from 'lodash'
 
 export default function ExcelImporter (args: any) {
-  const dbFilename = path.join(SCORE_DB_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.db')
-  if (fs.existsSync(dbFilename)) {
-    console.error(`[ERROR] Excel data has imported before. \nif you want to import again, please delete it first.\n"${dbFilename}"`)
-    process.exit(0)
+  const dataPath = path.join(DATA_PATH, path.basename(args.fileName).replace(path.extname(args.fileName), '') + '.tb')
+  if (fs.existsSync(dataPath)) {
+    console.error(`[ERROR] Excel data has imported before. \nif you want to import again, please delete it first.\n"${dataPath}"`)
+    process.exit(1)
   }
 
-  const db = new DataStore({
-    filename: dbFilename,
+  const dataFile = new DataStore({
+    filename: dataPath,
     autoload: true
   })
 
@@ -37,20 +37,20 @@ export default function ExcelImporter (args: any) {
   })
 
   // 读取数据
-  let dbData: ScoreData[] = []
+  let data: ScoreData[] = []
   xlsData.forEach((rowValues, rowIndex) => {
     if (rowIndex === 0) return
     const dataItem: any = {}
     _.forEach(xlsFieldPos, (pos: number, filedName: string) => {
       dataItem[filedName] = rowValues[pos] || null
     })
-    dbData.push(dataItem)
+    data.push(dataItem)
   })
 
   // 总分 & 排名
   const setDataSumFieldValue = (dataFields: F[], targetField: F) => {
     if (!dataFields || dataFields.length <= 0) return
-    _.forEach(dbData, (item) => {
+    _.forEach(data, (item) => {
       let scoreSum = 0
       dataFields.forEach((fieldName: string) => {
         if (xlsFieldNames.includes(fieldName)) {
@@ -63,13 +63,13 @@ export default function ExcelImporter (args: any) {
   setDataSumFieldValue(F_SUBJ, F.SCORED)
 
   // 总分从大到小排序
-  dbData = _.sortBy(dbData, o => -o.SCORED)
+  data = _.sortBy(data, o => -o.SCORED)
 
   // RANK
   let tRank = 1
   let tScored = -1
   let tSameNum = 1
-  _.forEach(dbData, (item) => {
+  _.forEach(data, (item) => {
     if (tScored === -1) {
       // 最高分初始化
       tScored = item.SCORED
@@ -104,7 +104,7 @@ export default function ExcelImporter (args: any) {
   }
 
   // 导入数据到数据库
-  dbData.forEach((item) => {
-    db.insert(item)
+  data.forEach((item) => {
+    dataFile.insert(item)
   })
 }
