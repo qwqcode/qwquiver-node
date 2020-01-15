@@ -1,7 +1,11 @@
 {
   "cSpell.words": [
     "Nuxt",
+    "argparse",
     "fastify",
+    "nuxtjs",
+    "qwqcode",
+    "qwquiver",
     "subcommands",
     "subparsers"
   ]

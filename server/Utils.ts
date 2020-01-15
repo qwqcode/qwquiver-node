@@ -45,7 +45,7 @@ export default class Utils {
     return tb
   }
 
-  static getAllTableConfObj () {
+  static getAllTableConfObj (): any {
     const obj = {}
     _.forEach(Database.tableList, (table, name) => {
       obj[name] = {}

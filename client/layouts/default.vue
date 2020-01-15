@@ -24,6 +24,10 @@ import Layers from '@/components/layers'
   components: { TopHeader, Sidebar, ...Layers }
 })
 export default class Default extends Vue {
+  created () {
+    Vue.prototype.$app = this
+  }
+
   get AllLayersNameList () {
     return Object.keys(Layers)
   }

@@ -42,12 +42,13 @@
         data-toggle="wlyTable"
         style="opacity: 1; height: 371px; padding-bottom: 55px;"
       >
+        <!-- Table -->
         <div ref="tHeader" class="wly-table-header">
           <table class="table table-striped table-hover" style="width: 1868.29px;">
             <thead>
               <tr>
                 <th
-                  v-for="(fieldName, i) in data.fieldNameList"
+                  v-for="(fieldName, i) in fieldList"
                   :key="i"
                   @click="switchSort(fieldName)"
                 >
@@ -65,20 +66,22 @@
             <thead>
               <tr>
                 <th
-                  v-for="(fieldName, i) in data.fieldNameList"
+                  v-for="(fieldName, i) in fieldList"
                   :key="i"
                 >{{ getFieldItemLabel(fieldName) }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(item, i) in data.list" :key="i" :data-wlytable-item-id="i">
-                <th v-for="(value, fieldName) in item" :key="fieldName">
-                  <span>{{ value }}</span>
+                <th v-for="fieldName in fieldList" :key="fieldName">
+                  <span>{{ item[fieldName] }} </span>
                 </th>
               </tr>
             </tbody>
           </table>
         </div>
+
+
         <div ref="tPagination" class="wly-table-pagination">
           <div class="paginate-simple">
             <a
@@ -169,6 +172,7 @@ import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
 import ScoreTableDialog from './ScoreTableDialog.vue'
 import F, { ScoreData } from '~~/common/interfaces/field'
+import * as FG from '~~/common/interfaces/field/FieldGrp'
 import { FTrans } from '~~/common/interfaces/field/FieldTrans'
 import { QueryApiData, QueryApiParams } from '~~/common/interfaces/api/QueryApi'
 import $ from 'jquery'
@@ -179,6 +183,7 @@ import _ from 'lodash'
 })
 export default class ScoreTable extends Vue {
   data: QueryApiData | null = null
+  fieldList: F[] | null = null
   params: QueryApiParams | null = null
   isFullScreen = false
   loading!: LoadingLayer
@@ -210,6 +215,17 @@ export default class ScoreTable extends Vue {
   onDataChanged () {
     this.$nextTick(() => {
       this.adjustDisplay()
+    })
+
+    if (this.data === null) return
+
+    // 构建有序字段名列表
+    const rawFieldNameList = this.data.fieldNameList
+    const fieldList: F[] = this.fieldList = []
+
+    _.forEach(_.union(FG.F_MAIN, FG.F_RANK, FG.F_NUM_ALL), (fieldName) => {
+      if (rawFieldNameList.includes(fieldName))
+        fieldList.push(fieldName)
     })
   }
 

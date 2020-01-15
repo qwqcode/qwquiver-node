@@ -15,7 +15,8 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-unused-vars': 'off',
     'nuxt/no-cjs-in-config': 'off',
-    'no-unused-vars': 'off'
+    'no-unused-vars': 'off',
+    'lines-between-class-members': 'off'
   },
   settings: {
     'import/core-modules': ['nuxt-property-decorator'],
