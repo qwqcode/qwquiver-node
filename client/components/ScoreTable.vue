@@ -171,10 +171,10 @@
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
 import ScoreTableDialog from './ScoreTableDialog.vue'
-import F, { ScoreData } from '~~/common/interfaces/field'
-import * as FG from '~~/common/interfaces/field/FieldGrp'
-import { FTrans } from '~~/common/interfaces/field/FieldTrans'
-import { QueryApiData, QueryApiParams } from '~~/common/interfaces/api/QueryApi'
+import F, { ScoreData } from '~~/server/Field'
+import * as FG from '~~/server/Field/Grp'
+import { FTrans } from '~~/server/Field/Trans'
+import * as ApiT from '~~/server/ApiTypes'
 import $ from 'jquery'
 import _ from 'lodash'
 
@@ -182,9 +182,9 @@ import _ from 'lodash'
   components: { LoadingLayer, ScoreTableDialog }
 })
 export default class ScoreTable extends Vue {
-  data: QueryApiData | null = null
+  data: ApiT.QueryData | null = null
   fieldList: F[] | null = null
-  params: QueryApiParams | null = null
+  params: ApiT.QueryParams | null = null
   isFullScreen = false
   loading!: LoadingLayer
 
@@ -202,13 +202,13 @@ export default class ScoreTable extends Vue {
       this.adjustDisplay()
     })
 
-    let params: QueryApiParams = {
+    let params: ApiT.QueryParams = {
       tb: 'test',
       page: 1,
       pagePer: 50
     }
     if (this.$route.query) params = { ...params, ...this.$route.query }
-    this.onRouteQueryChanged(params as QueryApiParams)
+    this.onRouteQueryChanged(params as ApiT.QueryParams)
   }
 
   @Watch('data')
@@ -244,8 +244,8 @@ export default class ScoreTable extends Vue {
     }
   }
 
-  fetchData (params: QueryApiParams, initialize = false) {
-    const reqParams: QueryApiParams = !initialize
+  fetchData (params: ApiT.QueryParams, initialize = false) {
+    const reqParams: ApiT.QueryParams = !initialize
       ? { ...this.params, ...params }
       : params
     this.$router.replace({ query: reqParams as any })

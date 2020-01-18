@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import F, { ScoreData } from '../common/interfaces/field'
+import F, { ScoreData } from './Field'
 import Utils from './Utils'
 import Table, { CONF_FIELD } from './Table'
 import _ from 'lodash'

@@ -1,9 +1,13 @@
-import F, { ScoreData } from '../common/interfaces/field'
+import F, { ScoreData } from './Field'
 import DataStore from 'nedb'
 
 /** 可配置的字段名列表 */
 export const CONF_FIELD: string[] = [] // must before the code where @AsConf is called
+function AsConf (target: any, propertyName: string) { CONF_FIELD.push(propertyName) }
 
+/**
+ * 一次成绩的数据表
+ */
 export default class Table {
   /** 数据 */
   public data!: DataStore<ScoreData>
@@ -19,8 +23,4 @@ export default class Table {
   /** 所属分类 */
   @AsConf
   public grp?: string
-}
-
-function AsConf (target: any, propertyName: string) {
-  CONF_FIELD.push(propertyName)
 }

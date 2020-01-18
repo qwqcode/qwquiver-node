@@ -59,9 +59,8 @@
 <script lang="ts">
 import { Component, Vue, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from '../LoadingLayer.vue'
-import F, { ScoreData } from '~~/common/interfaces/field'
-import { QueryApiData, QueryApiParams } from '~~/common/interfaces/api/QueryApi'
-import { AllSchoolApiData } from '~~/common/interfaces/api/AllSchoolApi'
+import F, { ScoreData } from '~~/server/Field'
+import * as ApiT from '~~/server/ApiTypes'
 import _ from 'lodash'
 import $ from 'jquery'
 
@@ -123,7 +122,7 @@ export default class SearchLayer extends Vue {
 
   scLoading!: LoadingLayer
   sc: {
-    data: AllSchoolApiData | null
+    data: ApiT.AllSchoolData | null
     openedSchool: string | null
   } | null = null
 
@@ -143,7 +142,7 @@ export default class SearchLayer extends Vue {
           params: { tb: 'test' }
         })
         if (!respData.success) return
-        const data = (respData.data || null) as AllSchoolApiData
+        const data = (respData.data || null) as ApiT.AllSchoolData
         this.sc = { data, openedSchool: Object.keys(data.school)[0] || null }
         this.scLoading.hide()
       })
@@ -151,7 +150,7 @@ export default class SearchLayer extends Vue {
   }
 
   submit () {
-    const reqParams: QueryApiParams = { where: JSON.stringify(this.searchData), page: 1 }
+    const reqParams: ApiT.QueryParams = { where: JSON.stringify(this.searchData), page: 1 }
     if (this.$scoreTable !== undefined) {
       this.$scoreTable.fetchData(reqParams)
       this.$nextTick(() => {

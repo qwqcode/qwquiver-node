@@ -9,7 +9,7 @@
     "build": "nuxt-ts build",
     "start": "nuxt-ts build && nuxt-ts start",
     "lint": "eslint --ext .ts,.js,.vue --ignore-path .gitignore .",
-    "cmd": "ts-node --project tsconfig.cmd.json cmd/index.ts"
+    "cmd": "ts-node --project cmd/tsconfig.json cmd/index.ts"
   },
   "dependencies": {
     "@nuxt/typescript-runtime": "^0.3.7",

@@ -1,7 +1,8 @@
 import path from 'path'
 import fs from 'fs'
-import { transDict as FT } from '../common/interfaces/field/FieldTrans'
-import ExcelImporter from './actions/ExcelImporter'
+import Console from 'console'
+import { transDict as FT } from '../server/Field/Trans'
+import ExcelImporter from './tools/ExcelImporter'
 import _ from 'lodash'
 import { ArgumentParser } from 'argparse'
 
@@ -31,7 +32,7 @@ const configBar = subparsers.addParser('config', {
 const importBar = subparsers.addParser('import', {
   help: '导入',
   addHelp: true,
-  description: '表头需设定字段名: ' + _.trimEnd(Object.keys(FT).join(', '), ', ')
+  description: `表头可选字段名: ${_.map(FT, (ft, f) => `${f} (${ft})`).join(', ')}`
 })
 importBar.addArgument('fileName', {
   action: 'store',
@@ -40,8 +41,7 @@ importBar.addArgument('fileName', {
 })
 
 const args = parser.parseArgs()
-console.dir(args)
 
 if (args.action === 'import' && !!args.fileName) {
-  ExcelImporter(args)
+  ExcelImporter(args.fileName)
 }

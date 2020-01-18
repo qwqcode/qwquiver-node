@@ -24,6 +24,7 @@ enum F {
   LZ = 'LZ',
   /** 文综 (政+历+地) */
   WZ = 'WZ',
+
   /** 主科 (语+数+英) */
   ZK = 'ZK',
   /** 理科 (语数英+理综) */
@@ -31,7 +32,8 @@ enum F {
   /** 文科（语数英+理综） */
   WK = 'WK',
 
-  /** 总分 */ SCORED = 'SCORED',
+  /** 总分 */
+  SCORED = 'SCORED',
 }
 
 type _ScoreData = {
@@ -45,7 +47,7 @@ type _ScoreData = {
   [F.WL]: number, [F.HX]: number, [F.SW]: number,
   [F.ZZ]: number, [F.LS]: number, [F.DL]: number,
   [F.LZ]: number, [F.WZ]: number,
-  [F.LK]: number, [F.WK]: number, [F.ZK]: number
+  [F.ZK]: number, [F.LK]: number, [F.WK]: number
 }
 
 export default F

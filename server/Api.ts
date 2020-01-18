@@ -1,18 +1,39 @@
-import Utils from '../Utils'
-import { transDict as FT } from '../../common/interfaces/field/FieldTrans'
-import { QueryApiData, QueryApiParams } from '../../common/interfaces/api/QueryApi'
-import F, { ScoreData } from '../../common/interfaces/field'
-import { AllSchoolApiParams, AllSchoolApiData } from '../../common/interfaces/api/AllSchoolApi'
+import F, { ScoreData } from './Field'
+import { transDict as FTD } from './Field/Trans'
+import * as ApiT from './ApiTypes'
+import Utils from './Utils'
+import Database from './Database'
+import Table, { CONF_FIELD } from './Table'
 import express, { Router, Request, Response } from 'express'
+import _ from 'lodash'
 
-export default function query (req: Request, res: Response) {
+const api: Router = Router()
+
+api.get('/', function index (req, res) {
+  res.send('Hello, QWQUIVER!')
+})
+
+api.get('/conf', function conf (req, res) {
+  const tableList = Utils.getAllTableConfObj()
+  const tableGrpList = _.uniq(_.flatMap(tableList, (o: Table) => o.grp))
+  const fieldTransDict = FTD
+
+  Utils.success(res, '', {
+    tableList,
+    tableGrpList,
+    fieldTransDict
+  })
+}
+)
+
+api.get('/query', function query (req, res) {
   const {
     tb: tbName,
     where: whereJsonStr,
     page: pageStr,
     pagePer: pagePerStr,
     sort: sortJsonStr
-  } = req.query as QueryApiParams
+  } = req.query as ApiT.QueryParams
 
   const table = Utils.getTableByReq(req, res)
   if (!table) return
@@ -56,11 +77,31 @@ export default function query (req: Request, res: Response) {
     if (err) {
       Utils.error(res, `数据获取错误 ${err.message}`)
     }
-    Utils.success(res, '数据获取成功', <QueryApiData>{
-      ...Utils.getPaginatedItems(scoreTbData, page, pagePer),
+    Utils.success(res, '数据获取成功', <ApiT.QueryData>{
+      ...Utils.getPaginatedData(scoreTbData, page, pagePer),
       fieldNameList,
       conditionList,
       sortList
     })
   })
-}
+})
+
+api.get('/allSchoolClass', function allSchoolClass (req, res) {
+  const { tb: tbName } = req.query as ApiT.AllSchoolParams
+
+  const table = Utils.getTableByReq(req, res)
+  if (!table) return
+
+  const respData: ApiT.AllSchoolData = { school: {} }
+  _.forEach(table.data.getAllData(), (item: ScoreData) => {
+    let classInSchool = respData.school[item.SCHOOL]
+    if (!classInSchool)
+      classInSchool = respData.school[item.SCHOOL] = []
+    if (!classInSchool.includes(item.CLASS))
+      classInSchool.push(item.CLASS)
+  })
+
+  Utils.success(res, '数据获取成功', respData)
+})
+
+export default api

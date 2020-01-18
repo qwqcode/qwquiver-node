@@ -6706,7 +6706,7 @@ nuxt-property-decorator@^2.5.0:
   dependencies:
     vue-class-component "7.1.0"
     vue-property-decorator "^8.3.0"
-    vuex "^3.1.2"
+    vuex "^3.1.1"
     vuex-class "^0.3.2"
 
 nuxt@^2.11.0:
@@ -9832,11 +9832,6 @@ vuex-class@^0.3.2:
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/vuex-class/-/vuex-class-0.3.2.tgz#c7e96a076c1682137d4d23a8dcfdc63f220e17a8"
   integrity sha512-m0w7/FMsNcwJgunJeM+wcNaHzK2KX1K1rw2WUQf7Q16ndXHo7pflRyOV/E8795JO/7fstyjH3EgqBI4h4n4qXQ==
-
-vuex@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/vuex/-/vuex-3.1.1.tgz#0c264bfe30cdbccf96ab9db3177d211828a5910e"
-  integrity sha512-ER5moSbLZuNSMBFnEBVGhQ1uCBNJslH9W/Dw2W7GZN23UQA69uapP5GTT9Vm8Trc0PzBSVt6LzF3hGjmv41xcg==
 
 vuex@^3.1.2:
   version "3.1.2"

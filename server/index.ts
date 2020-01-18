@@ -1,5 +1,5 @@
 import Database from './Database'
-import Api from './Routes'
+import Api from './Api'
 import express from 'express'
 import _ from 'lodash'
 

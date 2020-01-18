@@ -23,4 +23,4 @@ export const F_NUM_ALL = [...F_RANK, ...F_SUBJ, ...F_SUM]
 /** 非数字字段 */
 export const F_STR_ALL = [...F_MAIN]
 
-export const F_ALL = Object.keys(F)
+export const F_ALL = Object.keys(F) as F[]
