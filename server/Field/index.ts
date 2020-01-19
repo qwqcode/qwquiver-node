@@ -5,8 +5,6 @@ enum F {
   /** 班级 */ CLASS = 'CLASS',
 
   /** 排名 */ RANK = 'RANK',
-  /** 文排 */ LK_RANK = 'LK_RANK',
-  /** 理排 */ WK_RANK = 'WK_RANK',
 
   /** 语文 */ YW = 'YW',
   /** 数学 */ SX = 'SX',
@@ -31,6 +29,12 @@ enum F {
   LK = 'LK',
   /** 文科（语数英+理综） */
   WK = 'WK',
+
+  /** 主排 */ ZK_RANK = 'ZK_RANK',
+  /** 文排 */ LK_RANK = 'LK_RANK',
+  /** 理排 */ WK_RANK = 'WK_RANK',
+  /** 理综排 */ LZ_RANK = 'LZ_RANK',
+  /** 文综排 */ WZ_RANK = 'WZ_RANK',
 
   /** 总分 */
   SCORED = 'SCORED',

@@ -4,17 +4,17 @@
       <h2 class="list-label">基本</h2>
       <ul>
         <li :class="{ active: $route.name === 'index' }">
-          <span @click="$router.replace('/')">
+          <span @click="$router.replace('/').catch(err => {})">
             <i class="zmdi zmdi-view-carousel"></i> 总览
           </span>
         </li>
         <li :class="{ active: $route.name === 'charts' }">
-          <span @click="$router.replace('/charts')">
+          <span @click="$router.replace('/charts').catch(err => {})">
             <i class="zmdi zmdi-equalizer"></i> 趋势
           </span>
         </li>
         <li :class="{ active: $route.name === 'about' }">
-          <span @click="$router.replace('/about')">
+          <span @click="$router.replace('/about').catch(err => {})">
             <i class="zmdi zmdi-info-outline"></i> 关于
           </span>
         </li>

@@ -25,7 +25,7 @@ export interface QueryParams extends CommonParms {
   sort?: string
 }
 export interface QueryData extends PaginatedData {
-  fieldNameList: F[]
+  fieldList: F[]
   conditionList: { [key in F]?: string }
   sortList: { [key in F]?: 1|-1 }
 }

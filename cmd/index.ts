@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import Console from 'console'
+import consola from 'consola'
 import { transDict as FT } from '../server/Field/Trans'
 import ExcelImporter from './tools/ExcelImporter'
 import _ from 'lodash'

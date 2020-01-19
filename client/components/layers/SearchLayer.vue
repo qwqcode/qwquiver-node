@@ -83,9 +83,7 @@ export default class SearchLayer extends Vue {
   show () {
     this.isShow = true
     this.bindOutClickEvt()
-    window.setTimeout(() => {
-      (this.$refs.SearchInput as HTMLInputElement).focus()
-    }, 80)
+    this.focusSearchInput()
   }
 
   hide () {
@@ -131,6 +129,7 @@ export default class SearchLayer extends Vue {
     this.searchData = {}
 
     if (searchType === 'Name') {
+      this.focusSearchInput()
     }
 
     if (searchType === 'SchoolClass') {
@@ -147,6 +146,14 @@ export default class SearchLayer extends Vue {
         this.scLoading.hide()
       })
     }
+  }
+
+  focusSearchInput () {
+    this.$nextTick(() => {
+      const input = (this.$refs.SearchInput as HTMLInputElement)
+      if (!input || !input.focus) return
+      input.focus()
+    })
   }
 
   submit () {

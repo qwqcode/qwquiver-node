@@ -121,7 +121,7 @@
           <span class="dialog-label">点按下列方块来 显示 / 隐藏 字段</span>
           <div v-if="data !== null" class="field-list">
             <span
-              v-for="(fieldName, i) in data.fieldNameList"
+              v-for="(fieldName, i) in data.fieldList"
               :key="i"
               class="field-item active"
             >{{ getFieldItemLabel(fieldName) }}</span>
@@ -220,7 +220,7 @@ export default class ScoreTable extends Vue {
     if (this.data === null) return
 
     // 构建有序字段名列表
-    const rawFieldNameList = this.data.fieldNameList
+    const rawFieldNameList = this.data.fieldList
     const fieldList: F[] = this.fieldList = []
 
     _.forEach(_.union(FG.F_MAIN, FG.F_RANK, FG.F_NUM_ALL), (fieldName) => {

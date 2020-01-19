@@ -1,4 +1,6 @@
 import Database from './Database'
+import F from './Field'
+import { F_SUBJ } from './Field/Grp'
 import Table, { CONF_FIELD } from './Table'
 import * as ApiT from './ApiTypes'
 import express, { Router, Request, Response } from 'express'
@@ -34,19 +36,6 @@ export default class Utils {
     }
 
     return tb
-  }
-
-  static getAllTableConfObj (): any {
-    const obj = {}
-    _.forEach(Database.tableList, (table, name) => {
-      obj[name] = {}
-      _.forEach(CONF_FIELD, (field) => {
-        const val = table[field]
-        if (typeof val === 'undefined') return
-        obj[name][field] = val
-      })
-    })
-    return obj
   }
 
   static success (res: Response, msg?: string, data?: Object) {

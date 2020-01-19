@@ -4,7 +4,7 @@ import F from './'
 export const F_MAIN = [F.NAME, F.ID, F.SCHOOL, F.CLASS, F.SCORED]
 
 /** 排名字段 */
-export const F_RANK = [F.RANK, F.LK_RANK, F.WK_RANK]
+export const F_RANK = [F.RANK, F.ZK_RANK, F.LK_RANK, F.WK_RANK, F.LZ_RANK, F.WZ_RANK]
 
 /** 主科 */
 export const F_ZK_SUBJ = [F.YW, F.SX, F.YY]

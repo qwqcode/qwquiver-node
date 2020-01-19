@@ -15,6 +15,7 @@
     "@nuxt/typescript-runtime": "^0.3.7",
     "@nuxtjs/axios": "^5.9.3",
     "argparse": "^1.0.10",
+    "consola": "^2.11.3",
     "cross-env": "^6.0.3",
     "express": "^4.17.1",
     "jquery": "^3.4.1",

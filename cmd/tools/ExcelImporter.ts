@@ -1,23 +1,25 @@
 import path from 'path'
 import fs from 'fs'
-import Console from 'console'
+import consola from 'consola'
 import * as XLSX from 'xlsx'
 import F, { ScoreData } from '../../server/Field'
 import { transDict as FT } from '../../server/Field/Trans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../server/Field/Grp'
-import Database, { DATA_PATH } from '../../server/Database'
+import Database, { DATA_PATH, TbIndexFile } from '../../server/Database'
+import Table from '../../server/Table'
 import DataStore from 'nedb'
 import _ from 'lodash'
 
 export default function ExcelImporter (srcFileName: string) {
   if (!fs.existsSync(srcFileName)) {
-    Console.error(`[Error] 表格文件不存在，路径有误`)
+    consola.error(`表格文件不存在，路径有误`)
     process.exit(1)
   }
 
-  const dataFileName = path.join(DATA_PATH, path.basename(srcFileName).replace(path.extname(srcFileName), '') + '.tb')
+  const tbName = path.basename(srcFileName).replace(path.extname(srcFileName), '')
+  const dataFileName = path.join(DATA_PATH, `${tbName}.tb`)
   if (fs.existsSync(dataFileName)) {
-    Console.error(`[Error] 表格文件之前已导入过 \n如果想重新导入，请先删除文件：\n"${dataFileName}"`)
+    consola.error(`表格文件之前已导入过。若需重新导入，请先删除文件："${dataFileName}"`)
     process.exit(1)
   }
 
@@ -38,14 +40,14 @@ export default function ExcelImporter (srcFileName: string) {
   })
 
   // 读取数据
-  let tableData: ScoreData[] = []
+  let tableDataItems: ScoreData[] = []
   xlsData.forEach((rowValues, rowIndex) => {
     if (rowIndex === 0) return
     const dataItem: any = {}
     _.forEach(xlsFieldToColPos, (colPos: number, filedName: string) => {
       dataItem[filedName] = rowValues[colPos] || null
     })
-    tableData.push(dataItem)
+    tableDataItems.push(dataItem)
   })
 
   // 总分 & 排名
@@ -55,9 +57,9 @@ export default function ExcelImporter (srcFileName: string) {
    * @param dataSrcFields 求和数据源 字段
    * @param targetField 求和结果 字段
    */
-  const calcSumFieldFor = (dataSrcFields: F[], targetField: F) => {
+  function calcSumFieldFor (dataSrcFields: F[], targetField: F) {
     if (!dataSrcFields || dataSrcFields.length <= 0) return
-    _.forEach(tableData, (item) => {
+    _.forEach(tableDataItems, (item) => {
       let scoreSum = 0
       dataSrcFields.forEach((field: F) => {
         if (!xlsFields.includes(field)) return // 若这个字段不存在
@@ -67,31 +69,41 @@ export default function ExcelImporter (srcFileName: string) {
     })
   }
   calcSumFieldFor(F_SUBJ, F.SCORED)
+  calcRankFieldFor(F.SCORED, F.RANK)
 
-  // 总分从大到小排序
-  tableData = _.sortBy(tableData, o => -o.SCORED)
-
-  // RANK
-  let tRank = 1
-  let tScored = -1
-  let tSameNum = 1
-  _.forEach(tableData, (item) => {
-    if (tScored === -1) {
-      // 最高分初始化
-      tScored = item.SCORED
-      item.RANK = tRank
-      return
+  /**
+   * 计算 排名
+   * @param sumDataField 分数字段
+   * @param targetField 排名结果字段
+   */
+  function calcRankFieldFor (scoreSrcField: F, targetField: F) {
+    let tRank = 1
+    let tScored = -1
+    let tSameNum = 1
+    const itemsSorted = _.sortBy(tableDataItems, o => -o[scoreSrcField]) // 从大到小排序
+    const applyRankData = (item: any, rank: Number) => {
+      const rawItem: any = _.find(tableDataItems, o => o === item)
+      rawItem[targetField] = rank
     }
+    _.forEach(itemsSorted, (item: any) => {
+      const itemScore = Number(item[scoreSrcField])
+      if (tScored === -1) {
+        // 最高分初始化
+        tScored = itemScore
+        applyRankData(item, tRank)
+        return
+      }
 
-    if (Number(item.SCORED) < tScored) {
-      tRank = tRank + tSameNum
-      tScored = item.SCORED
-      tSameNum = 1
-    } else {
-      tSameNum++
-    }
-    item.RANK = tRank
-  })
+      if (itemScore < tScored) {
+        tRank = tRank + tSameNum
+        tScored = itemScore
+        tSameNum = 1
+      } else {
+        tSameNum++
+      }
+      applyRankData(item, tRank)
+    })
+  }
 
   // 文科 & 理科 & 理综 & 文综
   const dataZkSubjects = _.intersection(xlsFields, F_ZK_SUBJ) as F[]
@@ -99,24 +111,41 @@ export default function ExcelImporter (srcFileName: string) {
   const dataWzSubjects = _.intersection(xlsFields, F_WZ_SUBJ) as F[]
   if (dataZkSubjects.length > 0) {
     calcSumFieldFor(dataZkSubjects, F.ZK)
+    calcRankFieldFor(F.ZK, F.ZK_RANK)
   }
   if (dataLzSubjects.length > 0) {
     calcSumFieldFor(dataLzSubjects, F.LZ)
+    calcRankFieldFor(F.LZ, F.LZ_RANK)
+
     calcSumFieldFor(_.union(dataLzSubjects, dataZkSubjects), F.LK)
+    calcRankFieldFor(F.LK, F.LK_RANK)
   }
   if (dataWzSubjects.length > 0) {
     calcSumFieldFor(dataWzSubjects, F.WZ)
+    calcRankFieldFor(F.WZ, F.WZ_RANK)
+
     calcSumFieldFor(_.union(dataWzSubjects, dataZkSubjects), F.WK)
+    calcRankFieldFor(F.WK, F.WK_RANK)
   }
 
-  // 创建 DataStore
-  const dataFile = new DataStore({
-    filename: dataFileName,
-    autoload: true
-  })
+  // 总分从大到小排序
+  tableDataItems = _.sortBy(tableDataItems, o => -o.SCORED)
+
+  // 创建 Table 实例
+  const table = new Table(tbName)
 
   // 导入表格数据到文件
-  tableData.forEach((item) => {
-    dataFile.insert(item)
+  const tableDataLen = tableDataItems.length
+  tableDataItems.forEach((item, i) => {
+    table.Data.insert(item, (err) => {
+      if (err) consola.error(`表格数据 i=${i}：${err.message}`)
+      if (i+1 === tableDataLen) onFinish()
+    })
   })
+
+  function onFinish () {
+    TbIndexFile.update([table])
+    consola.success(`更新数据表索引文件`)
+    consola.success(`导入任务执行完毕`)
+  }
 }
