@@ -5,8 +5,8 @@ import * as XLSX from 'xlsx'
 import F, { ScoreData } from '../../server/Field'
 import { transDict as FT } from '../../server/Field/Trans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../server/Field/Grp'
-import Database, { DATA_PATH, TbIndexFile } from '../../server/Database'
-import Table from '../../server/Table'
+import Database, { DATA_PATH, ExamIndexFile } from '../../server/Database'
+import Exam from '../../server/Exam'
 import DataStore from 'nedb'
 import _ from 'lodash'
 
@@ -16,8 +16,8 @@ export default function ExcelImporter (srcFileName: string) {
     process.exit(1)
   }
 
-  const tbName = path.basename(srcFileName).replace(path.extname(srcFileName), '')
-  const dataFileName = path.join(DATA_PATH, `${tbName}.tb`)
+  const examName = path.basename(srcFileName).replace(path.extname(srcFileName), '')
+  const dataFileName = path.join(DATA_PATH, `${examName}.tb`)
   if (fs.existsSync(dataFileName)) {
     consola.error(`表格文件之前已导入过。若需重新导入，请先删除文件："${dataFileName}"`)
     process.exit(1)
@@ -131,20 +131,20 @@ export default function ExcelImporter (srcFileName: string) {
   // 总分从大到小排序
   tableDataItems = _.sortBy(tableDataItems, o => -o.SCORED)
 
-  // 创建 Table 实例
-  const table = new Table(tbName)
+  // 创建 Exam 实例
+  const exam = new Exam(examName)
 
   // 导入表格数据到文件
   const tableDataLen = tableDataItems.length
   tableDataItems.forEach((item, i) => {
-    table.Data.insert(item, (err) => {
+    exam.Data.insert(item, (err) => {
       if (err) consola.error(`表格数据 i=${i}：${err.message}`)
       if (i+1 === tableDataLen) onFinish()
     })
   })
 
   function onFinish () {
-    TbIndexFile.update([table])
+    ExamIndexFile.update([exam])
     consola.success(`更新数据表索引文件`)
     consola.success(`导入任务执行完毕`)
   }

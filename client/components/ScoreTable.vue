@@ -2,12 +2,12 @@
   <div class="grades-table card">
     <div v-if="data !== null" class="card-header">
       <h2 class="card-title" data-wlytable="title">
-        一中 - 高一下 期末 [理科] - 全市考生成绩
+        {{ data.examConf.Label }} - 全市考生成绩
         <span
           style="font-size: 13px;vertical-align: bottom;"
         >[页码 {{ data.page }}/{{ data.lastPage }}]</span>
       </h2>
-      <small class="card-subtitle">本次考试共有 {{ data.total }} 人参加</small>
+      <small class="card-subtitle">共有 {{ data.total }} 人</small>
       <div class="actions">
         <span class="actions__item show-top-badge" @click="$searchLayer.toggle()">
           <i class="zmdi zmdi-search"></i>
@@ -203,7 +203,7 @@ export default class ScoreTable extends Vue {
     })
 
     let params: ApiT.QueryParams = {
-      tb: 'test',
+      exam: 'test',
       page: 1,
       pagePer: 50
     }
@@ -251,8 +251,8 @@ export default class ScoreTable extends Vue {
     this.$router.replace({ query: reqParams as any })
   }
 
-  switchTable (tableName: string) {
-    this.fetchData({ tb: tableName }, true)
+  switchExam (examName: string) {
+    this.fetchData({ exam: examName }, true)
   }
 
   switchPage (pageNum: number) {

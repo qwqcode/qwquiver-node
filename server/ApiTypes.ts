@@ -1,8 +1,9 @@
-import F from '~/server/Field'
+import F from './Field'
+import { EXAM_CONF } from './Exam'
 
 export interface CommonParms {
   /** 成绩数据表名 */
-  tb?: string
+  exam?: string
 }
 
 export interface AllSchoolParams extends CommonParms {}
@@ -25,6 +26,7 @@ export interface QueryParams extends CommonParms {
   sort?: string
 }
 export interface QueryData extends PaginatedData {
+  examConf: EXAM_CONF
   fieldList: F[]
   conditionList: { [key in F]?: string }
   sortList: { [key in F]?: 1|-1 }

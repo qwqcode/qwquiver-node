@@ -138,7 +138,7 @@ export default class SearchLayer extends Vue {
         this.scLoading = this.$refs.scLoading as LoadingLayer
         this.scLoading.show()
         const respData = await this.$axios.$get('./api/allSchoolClass', {
-          params: { tb: 'test' }
+          params: { exam: 'test' }
         })
         if (!respData.success) return
         const data = (respData.data || null) as ApiT.AllSchoolData

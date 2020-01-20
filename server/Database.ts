@@ -3,128 +3,129 @@ import fs from 'fs'
 import consola from 'consola'
 import F, { ScoreData } from './Field'
 import Utils from './Utils'
-import Table, { CONF_FIELD, TB_CONF } from './Table'
+import Exam, { CONF_FIELD, EXAM_CONF } from './Exam'
 import _ from 'lodash'
 import DataStore from 'nedb'
 
 /** 数据根目录 */
 export const DATA_PATH = path.join(__dirname, '../storage/data')
 
-/** 数据表索引对象  */
-export type TB_INDEX = { [tbName: string]: TB_CONF }
+/** 考试索引对象  */
+export type EXAM_INDEX = { [examName: string]: EXAM_CONF }
 
-/** 数据表索引文件完整路径 */
-export const TB_INDEX_FILENAME = path.join(DATA_PATH, './_index.json')
+/** 考试索引文件完整路径 */
+export const EXAM_INDEX_FILENAME = path.join(DATA_PATH, './_index.json')
 
-/** 数据库 */
+/**
+ * 考试数据库
+ */
 class Database {
-  private tableList: Table[] = []
+  private ExamList: Exam[] = []
 
   /** 初始化数据库 */
   public init () {
-    this.loadTables()
+    this.loadExams()
   }
 
-  /** 获取数据表 */
-  public getTable (name: string) {
-    return this.tableList.find(o => o.name === name)
+  /** 获取考试 */
+  public getExam (name: string) {
+    return this.ExamList.find(o => o.name === name)
   }
 
-  /** 装载数据表 */
-  private loadTables () {
+  /** 装载考试 */
+  private loadExams () {
     if (!fs.existsSync(DATA_PATH)) { // 若数据根目录不存在，则创建一个
       fs.mkdirSync(DATA_PATH, { recursive: true })
     }
 
-    // 获取数据表索引对象，装载数据表前根据数据文件来更新一次
-    const tbIndex = TbIndexFile.update()
+    // 根据数据文件来更新一次 考试索引
+    const examIndex = ExamIndexFile.update()
 
-    _.forEach(tbIndex, (tableConf, tableName) => {
-      const dataFilename = path.join(DATA_PATH, `${tableName}.tb`)
+    _.forEach(examIndex, (examConf, examName) => {
+      const dataFilename = path.join(DATA_PATH, `${examName}.tb`)
       if (!fs.existsSync(dataFilename)) {
-        consola.warn(`数据表 "${tableName}" 的数据文件丢失，找不到文件："${dataFilename}"`)
+        consola.warn(`"${examName}" 的数据文件丢失，找不到文件："${dataFilename}"`)
         return
       }
 
       try {
-        this.tableList.push(new Table(tableName, tableConf))
+        this.ExamList.push(new Exam(examName, examConf))
       } catch (e) {
-        consola.warn(`数据表 "${tableName}" 实例化时发生错误：${e}`)
+        consola.warn(`"${examName}" 实例化时发生错误：${e}`)
       }
     })
   }
 
-  /** 获取数据表索引 */
-  public getTbIndex (): TB_INDEX {
-    const tbIndex: TB_INDEX = {}
-    _.forEach(this.tableList, (table) => {
-      tbIndex[table.name] = table.getConf()
+  /** 获取考试索引 */
+  public getExamIndex (): EXAM_INDEX {
+    const examIndex: EXAM_INDEX = {}
+    _.forEach(this.ExamList, (exam) => {
+      examIndex[exam.name] = exam.getConf()
     })
-    return tbIndex
+    return examIndex
   }
 }
 
 const _D = new Database()
 export default _D
 
-/** 数据表索引文件 */
-export class TbIndexFile {
-  /** 从索引文件中 获取数据表索引 */
-  static get (): TB_INDEX {
+/** 考试索引文件 */
+export class ExamIndexFile {
+  /** 获取考试索引 */
+  static get (): EXAM_INDEX {
     let indexFileStr: string
-    if (!fs.existsSync(TB_INDEX_FILENAME) || !(indexFileStr = fs.readFileSync(TB_INDEX_FILENAME, 'utf-8'))) {
+    if (!fs.existsSync(EXAM_INDEX_FILENAME) || !(indexFileStr = fs.readFileSync(EXAM_INDEX_FILENAME, 'utf-8'))) {
       // 若文件不存在 或 读取的文件数据为空
       return {}
     }
 
-    let tbIndex: any
+    let examIndex: any
     try {
       // 尝试解析 JSON
-      tbIndex = JSON.parse(indexFileStr)
+      examIndex = JSON.parse(indexFileStr)
     } catch (err) {
-      consola.error(`无法读取数据索引，解析 JSON 发生错误：${err} - "${TB_INDEX_FILENAME}"`)
+      consola.error(`无法读取数据索引，解析 JSON 发生错误：${err} - "${EXAM_INDEX_FILENAME}"`)
       process.exit(1)
     }
 
-    if (!_.isObject(tbIndex)) return {}
+    if (!_.isObject(examIndex)) return {}
 
-    return (tbIndex as any) || {}
+    return (examIndex as any) || {}
   }
 
-  /** 根据数据文件，更新数据表索引文件 */
-  static update (rangeTables?: Table[]): TB_INDEX {
-    const tbIndex = this.get() // 原有的数据表索引
+  /** 根据数据文件，更新考试索引文件 */
+  static update (rangeExams?: Exam[]): EXAM_INDEX {
+    const examIndex = this.get() // 原有的索引
 
     // 读取所有数据文件
     fs.readdirSync(DATA_PATH).filter(o => /\.tb$/.test(o)).forEach((fileName) => {
-      const tbName = fileName.replace(/\.tb$/i,'')
-      if (!rangeTables && _.has(tbIndex, tbName)) return // 若未指定范围，则已存在的CONF不改动
+      const examName = fileName.replace(/\.tb$/i,'')
+      if (!rangeExams && _.has(examIndex, examName)) return // 若未指定范围，则更新索引中不存在的考试配置
 
       const conf = {
-        Label: tbName,
+        Label: examName,
         FullScore: {},
         Date: '',
         Grp: '其他',
         Note: ''
-      } as Table // 为了方便，欺骗一下 ts 的 type
-      // 仅变动索引中不存在的数据表
+      } as Exam // 为了方便，欺骗一下 ts 的 type
 
-      if (rangeTables) {
-        const table = rangeTables.find(o => o.name === tbName)
-        if (!table) return
+      if (rangeExams) { // 若指定了范围，则仅改动范围中的考试配置
+        const exam = rangeExams.find(o => o.name === examName)
+        if (!exam) return
 
         // 生成 fullScore
         // @ts-ignore
-        conf.FullScore = table.tryGetFullScoreByData()
+        conf.FullScore = exam.tryGetFullScoreByData()
       }
 
-      tbIndex[tbName] = conf
+      examIndex[examName] = conf
     })
 
-    // 将修改后的数据表索引对象写入文件
-    fs.writeFileSync(TB_INDEX_FILENAME, JSON.stringify(tbIndex, null, '  '), 'utf8')
+    // 将修改后的考试索引对象写入文件
+    fs.writeFileSync(EXAM_INDEX_FILENAME, JSON.stringify(examIndex, null, '  '), 'utf8')
 
-    return tbIndex
+    return examIndex
   }
 
 }

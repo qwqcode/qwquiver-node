@@ -7,7 +7,7 @@ import DataStore from 'nedb'
 import _ from 'lodash'
 
 /** 数据表配置 */
-export type TB_CONF = { [key: string]: any }
+export type EXAM_CONF = { [key: string]: any }
 
 /** 可配置的字段名列表 */
 export const CONF_FIELD: string[] = [] // must before the code where @AsConf is called
@@ -16,7 +16,7 @@ function IsConf (target: any, field: string) { if (!CONF_FIELD.includes(field)) 
 /**
  * 成绩 数据表
  */
-export default class Table {
+export default class Exam {
   /** 数据 */
   public Data: DataStore<ScoreData>
 
@@ -40,7 +40,7 @@ export default class Table {
   @IsConf
   public readonly Note?: string
 
-  constructor (public name: string, conf: TB_CONF = {}) {
+  constructor (public name: string, conf: EXAM_CONF = {}) {
     const dataFilename = path.join(DATA_PATH, `${name}.tb`)
 
     // 应用可用的 conf
@@ -71,7 +71,7 @@ export default class Table {
   }
 
   /** 获取数据表配置 */
-  public getConf (): TB_CONF {
+  public getConf (): EXAM_CONF {
     const conf = {}
     _.forEach(CONF_FIELD, (f) => {
       const val = this[f]

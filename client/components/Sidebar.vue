@@ -20,10 +20,10 @@
         </li>
       </ul>
       <h2 class="list-label">数据列表</h2>
-      <ul v-if="!!data.tableList">
-        <li v-for="(table, name) in data.tableList" :key="name" :class="{ active: false }">
-          <span @click="switchTable(name)">
-            <i class="zmdi zmdi-trending-up"></i> {{ table.label || name }}
+      <ul v-if="!!data.examList">
+        <li v-for="(exam, name) in data.examList" :key="name" :class="{ active: false }">
+          <span @click="switchExam(name)">
+            <i class="zmdi zmdi-trending-up"></i> {{ exam.label || name }}
           </span>
         </li>
       </ul>
@@ -55,9 +55,9 @@ export default class Sidebar extends Vue {
     }
   }
 
-  switchTable (name: string) {
+  switchExam (name: string) {
     if (this.$scoreTable) {
-      this.$scoreTable.switchTable(name)
+      this.$scoreTable.switchExam(name)
     }
   }
 }

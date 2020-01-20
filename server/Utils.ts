@@ -1,7 +1,7 @@
 import Database from './Database'
 import F from './Field'
 import { F_SUBJ } from './Field/Grp'
-import Table, { CONF_FIELD } from './Table'
+import Exam, { CONF_FIELD } from './Exam'
 import * as ApiT from './ApiTypes'
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
@@ -22,20 +22,20 @@ export default class Utils {
     }
   }
 
-  static getTableByReq (req: Request, res: Response) {
-    const { tb: tbName } = req.query as ApiT.CommonParms
-    if (!tbName) {
+  static getExamByReq (req: Request, res: Response) {
+    const { exam: examName } = req.query as ApiT.CommonParms
+    if (!examName) {
       Utils.error(res, `未选择数据`)
       return null
     }
 
-    const tb = Database.getTable(tbName)
-    if (!tb) {
-      Utils.error(res, `未找到数据 ${tbName || ''}`)
+    const exam = Database.getExam(examName)
+    if (!exam) {
+      Utils.error(res, `未找到数据 ${examName || ''}`)
       return null
     }
 
-    return tb
+    return exam
   }
 
   static success (res: Response, msg?: string, data?: Object) {
