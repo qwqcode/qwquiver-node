@@ -48,14 +48,14 @@
             <thead>
               <tr>
                 <th
-                  v-for="(fieldName, i) in fieldList"
+                  v-for="(f, i) in ViewFieldList"
                   :key="i"
-                  @click="switchSort(fieldName)"
+                  @click="switchSort(f)"
                 >
                   <span
-                    :class="getFieldItemClass(fieldName)"
-                    :title="getFieldItemHoverTitle(fieldName)"
-                  >{{ getFieldItemLabel(fieldName) }}</span>
+                    :class="getFieldItemClass(f)"
+                    :title="getFieldItemHoverTitle(f)"
+                  >{{ getFieldItemLabel(f) }}</span>
                 </th>
               </tr>
             </thead>
@@ -66,15 +66,15 @@
             <thead>
               <tr>
                 <th
-                  v-for="(fieldName, i) in fieldList"
+                  v-for="(f, i) in ViewFieldList"
                   :key="i"
-                >{{ getFieldItemLabel(fieldName) }}</th>
+                >{{ getFieldItemLabel(f) }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(item, i) in data.list" :key="i" :data-wlytable-item-id="i">
-                <th v-for="fieldName in fieldList" :key="fieldName">
-                  <span>{{ item[fieldName] }} </span>
+                <th v-for="f in ViewFieldList" :key="f">
+                  <span>{{ item[f] }} </span>
                 </th>
               </tr>
             </tbody>
@@ -121,10 +121,12 @@
           <span class="dialog-label">点按下列方块来 显示 / 隐藏 字段</span>
           <div v-if="data !== null" class="field-list">
             <span
-              v-for="(fieldName, i) in data.fieldList"
+              v-for="(f, i) in FieldList"
               :key="i"
-              class="field-item active"
-            >{{ getFieldItemLabel(fieldName) }}</span>
+              :class="{ 'active': !HideFieldList.includes(f) }"
+              class="field-item"
+              @click="toggleFieldView(f)"
+            >{{ getFieldItemLabel(f) }}</span>
           </div>
           <span class="dialog-label">每页显示项目数量 （数字不宜过大）</span>
           <div class="page-per-show">
@@ -183,10 +185,44 @@ import _ from 'lodash'
 })
 export default class ScoreTable extends Vue {
   data: ApiT.QueryData | null = null
-  fieldList: F[] | null = null
   params: ApiT.QueryParams | null = null
   isFullScreen = false
   loading!: LoadingLayer
+
+  /** 全部字段 */
+  get FieldList () {
+    if (!this.data) return []
+
+    // 构建有序字段名列表
+    const rawFieldList = this.data.fieldList
+    const fieldList: F[] = []
+
+    _.forEach(_.union(FG.F_MAIN, FG.F_SUBJ, FG.F_EXT_RANK, FG.F_EXT_SUM), (fieldName) => {
+      if (rawFieldList.includes(fieldName))
+        fieldList.push(fieldName)
+    })
+
+    return fieldList
+  }
+
+  /** 显示的字段 */
+  get ViewFieldList () {
+    return _.filter(this.FieldList, (f) => !this.HideFieldList.includes(f))
+  }
+
+  /** 隐藏的字段 */
+  HideFieldList: F[] = [...FG.F_EXT_RANK, ...FG.F_EXT_SUM]
+
+  toggleFieldView (field: F) {
+    if (this.HideFieldList.includes(field)) {
+      this.HideFieldList.splice(this.HideFieldList.indexOf(field), 1)
+    } else {
+      this.HideFieldList.push(field)
+    }
+    this.$nextTick(() => {
+      this.adjustDisplay()
+    })
+  }
 
   created () {
     Vue.prototype.$scoreTable = this
@@ -217,16 +253,7 @@ export default class ScoreTable extends Vue {
       this.adjustDisplay()
     })
 
-    if (this.data === null) return
-
-    // 构建有序字段名列表
-    const rawFieldNameList = this.data.fieldList
-    const fieldList: F[] = this.fieldList = []
-
-    _.forEach(_.union(FG.F_MAIN, FG.F_RANK, FG.F_NUM_ALL), (fieldName) => {
-      if (rawFieldNameList.includes(fieldName))
-        fieldList.push(fieldName)
-    })
+    // if (this.data === null) return
   }
 
   @Watch('$route.query')
