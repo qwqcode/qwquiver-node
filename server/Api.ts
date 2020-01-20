@@ -3,7 +3,7 @@ import { transDict as FTD } from './Field/Trans'
 import * as ApiT from './ApiTypes'
 import Utils from './Utils'
 import Database from './Database'
-import Exam, { CONF_FIELD } from './Exam'
+import Exam, { EXAM_CONF } from './Exam'
 import express, { Router, Request, Response } from 'express'
 import _ from 'lodash'
 
@@ -15,7 +15,7 @@ api.get('/', function index (req, res) {
 
 api.get('/conf', function conf (req, res) {
   const examList = Database.getExamIndex()
-  const examGrpList = _.uniq(_.flatMap(examList, (o: Exam) => o.Grp))
+  const examGrpList = _.uniq(_.flatMap(examList, (o) => o.Grp || ''))
   const fieldTransDict = FTD
 
   Utils.success(res, '', {

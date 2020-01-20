@@ -3,7 +3,7 @@ import fs from 'fs'
 import consola from 'consola'
 import F, { ScoreData } from './Field'
 import Utils from './Utils'
-import Exam, { CONF_FIELD, EXAM_CONF } from './Exam'
+import Exam, { EXAM_CONF } from './Exam'
 import _ from 'lodash'
 import DataStore from 'nedb'
 
@@ -20,6 +20,7 @@ export const EXAM_INDEX_FILENAME = path.join(DATA_PATH, './_index.json')
  * 考试数据库
  */
 class Database {
+  /** 考试列表 */
   private ExamList: Exam[] = []
 
   /** 初始化数据库 */
@@ -29,7 +30,12 @@ class Database {
 
   /** 获取考试 */
   public getExam (name: string) {
-    return this.ExamList.find(o => o.name === name)
+    return this.ExamList.find(o => o.Name === name)
+  }
+
+  /** 获取考试列表 */
+  public getExamList () {
+    return this.ExamList
   }
 
   /** 装载考试 */
@@ -56,11 +62,12 @@ class Database {
     })
   }
 
-  /** 获取考试索引 */
+
+  /** 获取考试配置列表 */
   public getExamIndex (): EXAM_INDEX {
     const examIndex: EXAM_INDEX = {}
     _.forEach(this.ExamList, (exam) => {
-      examIndex[exam.name] = exam.getConf()
+      examIndex[exam.Name] = exam.getConf()
     })
     return examIndex
   }
@@ -102,20 +109,19 @@ export class ExamIndexFile {
       const examName = fileName.replace(/\.tb$/i,'')
       if (!rangeExams && _.has(examIndex, examName)) return // 若未指定范围，则更新索引中不存在的考试配置
 
-      const conf = {
+      const conf: EXAM_CONF = {
         Label: examName,
         FullScore: {},
         Date: '',
         Grp: '其他',
         Note: ''
-      } as Exam // 为了方便，欺骗一下 ts 的 type
+      }
 
       if (rangeExams) { // 若指定了范围，则仅改动范围中的考试配置
-        const exam = rangeExams.find(o => o.name === examName)
+        const exam = rangeExams.find(o => o.Name === examName)
         if (!exam) return
 
         // 生成 fullScore
-        // @ts-ignore
         conf.FullScore = exam.tryGetFullScoreByData()
       }
 

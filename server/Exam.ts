@@ -7,48 +7,39 @@ import DataStore from 'nedb'
 import _ from 'lodash'
 
 /** 数据表配置 */
-export type EXAM_CONF = { [key: string]: any }
+export interface EXAM_CONF {
+  /** 标签 */
+  Label?: string
 
-/** 可配置的字段名列表 */
-export const CONF_FIELD: string[] = [] // must before the code where @AsConf is called
-function IsConf (target: any, field: string) { if (!CONF_FIELD.includes(field)) CONF_FIELD.push(field) }
+  /** 每科最大分值 */
+  FullScore?: { [subject in F]?: number }
+
+  /** 考试日期 */
+  Date?: string
+
+  /** 所属分类 */
+  Grp?: string
+
+  /** 备注 */
+  Note?: string
+}
 
 /**
  * 成绩 数据表
  */
 export default class Exam {
+  public Name: string
+
   /** 数据 */
   public Data: DataStore<ScoreData>
 
-  /** 标签 */
-  @IsConf
-  public readonly Label?: string
+  public readonly Conf: EXAM_CONF
 
-  /** 每科最大分值 */
-  @IsConf
-  public readonly FullScore?: { [subject in F]?: number }
-
-  /** 考试日期 */
-  @IsConf
-  public readonly Date?: string
-
-  /** 所属分类 */
-  @IsConf
-  public readonly Grp?: string
-
-  /** 备注 */
-  @IsConf
-  public readonly Note?: string
-
-  constructor (public name: string, conf: EXAM_CONF = {}) {
+  constructor (name: string, conf: EXAM_CONF = {}) {
     const dataFilename = path.join(DATA_PATH, `${name}.tb`)
 
-    // 应用可用的 conf
-    _.forEach(conf, (val, key) => {
-      if (CONF_FIELD.includes(key))
-        (this as any)[key] = val
-    })
-
+    this.Name = name
+    this.Conf = conf
     this.Data = new DataStore({ filename: dataFilename, autoload: true })
   }
 
@@ -72,14 +63,7 @@ export default class Exam {
 
   /** 获取数据表配置 */
   public getConf (): EXAM_CONF {
-    const conf = {}
-    _.forEach(CONF_FIELD, (f) => {
-      const val = this[f]
-      if (typeof val === 'undefined') return
-      conf[f] = val
-    })
-
-    return conf
+    return this.Conf
   }
 
   /** 通过数据尝试得到每科最大分值 */
