@@ -115,6 +115,7 @@ export default class ScoreTableDialog extends Vue {
   .table-ctrl-dialog {
     .field-list {
       .field-item {
+        user-select: none;
         position: relative;
         display: inline-block;
         padding: 6px 20px;

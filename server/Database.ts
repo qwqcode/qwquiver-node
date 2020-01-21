@@ -113,7 +113,7 @@ export class ExamIndexFile {
         Label: examName,
         FullScore: {},
         Date: '',
-        Grp: '其他',
+        Grp: '其它',
         Note: ''
       }
 

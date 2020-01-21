@@ -1,5 +1,6 @@
 <template>
   <div>
+    <CardCSSCode />
     <!-- eslint-disable-next-line vue/attributes-order -->
     <component v-for="layer in AllLayersNameList" :is="layer" :key="layer" />
     <TopHeader />
@@ -18,10 +19,12 @@
 import { Component, Vue } from 'nuxt-property-decorator'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
+import CardCSSCode from '@/components/Card.vue'
 import Layers from '@/components/layers'
+import $ from 'jquery'
 
 @Component({
-  components: { TopHeader, Sidebar, ...Layers }
+  components: { TopHeader, Sidebar, ...Layers, CardCSSCode }
 })
 export default class Default extends Vue {
   created () {
@@ -30,6 +33,15 @@ export default class Default extends Vue {
 
   get AllLayersNameList () {
     return Object.keys(Layers)
+  }
+
+  getContentHeight () {
+    return (
+      ($(window).height() || 0) -
+      ($('.main-navbar').outerHeight(true) || 0) -
+      ($('.card .card-header').outerHeight(true) || 0) -
+      80
+    )
   }
 }
 </script>

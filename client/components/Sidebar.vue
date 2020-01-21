@@ -8,8 +8,8 @@
             <i class="zmdi zmdi-view-carousel"></i> 总览
           </span>
         </li>
-        <li :class="{ active: $route.name === 'charts' }">
-          <span @click="$router.replace('/charts').catch(err => {})">
+        <li :class="{ active: $route.name === 'chart' }">
+          <span @click="$router.replace('/chart').catch(err => {})">
             <i class="zmdi zmdi-equalizer"></i> 趋势
           </span>
         </li>

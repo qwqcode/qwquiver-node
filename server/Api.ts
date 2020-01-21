@@ -1,6 +1,6 @@
 import F, { ScoreData } from './Field'
 import { F_SUBJ, F_EXT_SUM } from './Field/Grp'
-import { transDict as FTD } from './Field/Trans'
+import { FTrans, transDict as FTD } from './Field/Trans'
 import * as ApiT from './ApiTypes'
 import Utils from './Utils'
 import Database from './Database'
@@ -10,11 +10,11 @@ import _ from 'lodash'
 
 const api: Router = Router()
 
-api.get('/', function index (req, res) {
+api.get('/', (req, res) => {
   res.send('Hello, QWQUIVER!')
 })
 
-api.get('/conf', function conf (req, res) {
+api.get('/conf', (req, res) => {
   const examList = Database.getExamIndex()
   const examGrpList = _.uniq(_.flatMap(examList, (o) => o.Grp || ''))
   const fieldTransDict = FTD
@@ -27,7 +27,7 @@ api.get('/conf', function conf (req, res) {
 }
 )
 
-api.get('/query', function query (req, res) {
+api.get('/query', (req, res) => {
   const {
     exam: examName,
     where: whereJsonStr,
@@ -108,7 +108,7 @@ api.get('/query', function query (req, res) {
   })
 })
 
-api.get('/allSchoolClass', function allSchoolClass (req, res) {
+api.get('/allSchoolClass', (req, res) => {
   const { exam: examName } = req.query as ApiT.AllSchoolParams
 
   const exam = Utils.getExamByReq(req, res)
@@ -122,6 +122,50 @@ api.get('/allSchoolClass', function allSchoolClass (req, res) {
     if (!classInSchool.includes(item.CLASS))
       classInSchool.push(item.CLASS)
   })
+
+  Utils.success(res, '数据获取成功', respData)
+})
+
+api.get('/chart', (req, res) => {
+  const {
+    examGrp,
+    where: whereJsonStr,
+  } = req.query as ApiT.ChartParams
+
+  let condList: { [key in F]?: string } = {}
+  try {
+    if (whereJsonStr) condList = JSON.parse(whereJsonStr)
+  } catch {
+    Utils.error(res, `参数 JSON 解析错误`)
+    return
+  }
+
+  let uncertain = false // 不确定的数据
+  const examList = (examGrp !== undefined) ? _.filter(Database.getExamList(), o => o.Conf.Grp === examGrp) : Database.getExamList()
+  const fieldList: string[] = F_SUBJ
+
+  const chartData: any[] = []
+  _.forEach(examList, (exam) => {
+    const oneList = _.filter(exam.Data.getAllData(), condList)
+    if (oneList.length <= 0) return
+    if (oneList.length > 1) uncertain = true
+    const one = oneList[0]
+    const chartDataItem: {[key: string]: number} = {}
+    _.forEach(fieldList, (f) => {
+      if (!one[f]) return
+      let score: number = one[f]
+      if (!!exam.Conf.FullScore && _.has(exam.Conf.FullScore, f))
+        score = Number(((score / (exam.Conf.FullScore[f] || 1)) * 100).toFixed(2)) // 转为百分制
+      chartDataItem[FTrans(f)] = score
+    })
+    chartData.push({exam: exam.Name, ...chartDataItem})
+  })
+
+  const respData: ApiT.ChartData = {
+    chartData,
+    fieldList: _.map(fieldList, f => FTrans(f)),
+    uncertain
+  }
 
   Utils.success(res, '数据获取成功', respData)
 })

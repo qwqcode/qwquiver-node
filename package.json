@@ -12,6 +12,8 @@
     "cmd": "ts-node --project cmd/tsconfig.json cmd/index.ts"
   },
   "dependencies": {
+    "@antv/data-set": "^0.10.2",
+    "@antv/g2": "^3.5.11",
     "@nuxt/typescript-runtime": "^0.3.7",
     "@nuxtjs/axios": "^5.9.3",
     "argparse": "^1.0.10",

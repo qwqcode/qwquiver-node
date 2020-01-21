@@ -21,6 +21,6 @@ const transDictCN = {
 
 export { transDictCN as transDict }
 
-export function FTrans (fieldName: F) {
+export function FTrans (fieldName: F|string) {
   return transDictCN[fieldName] || ''
 }

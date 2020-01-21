@@ -33,3 +33,13 @@ export interface QueryData extends PaginatedData {
   condList: { [key in F]?: string|RegExp }
   sortList: { [key in F]?: 1|-1 }
 }
+
+export interface ChartParams {
+  examGrp?: string
+  where?: string
+}
+export interface ChartData {
+  uncertain: boolean
+  fieldList: string[]
+  chartData: {[key in F|'exam']?: any}[]
+}

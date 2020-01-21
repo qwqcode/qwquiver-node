@@ -74,7 +74,8 @@
             <tbody>
               <tr v-for="(item, i) in data.list" :key="i" :data-wlytable-item-id="i">
                 <th v-for="f in ViewFieldList" :key="f">
-                  <span>{{ item[f] }} </span>
+                  <span v-if="f === 'NAME'" class="clickable-text" @click="goChart(item)">{{ item[f] }}</span>
+                  <span v-else>{{ item[f] }}</span>
                 </th>
               </tr>
             </tbody>
@@ -307,15 +308,6 @@ export default class ScoreTable extends Vue {
     return arr
   }
 
-  getHeight () {
-    return (
-      ($(window).height() || 0) -
-      ($('.main-navbar').outerHeight(true) || 0) -
-      ($('.card .card-header').outerHeight(true) || 0) -
-      80
-    )
-  }
-
   adjustDisplay () {
     const topNavbar = $('.main-navbar')
 
@@ -326,7 +318,7 @@ export default class ScoreTable extends Vue {
     const bodyTableEl = bodyEl.find('table')
     const paginationEl = $(this.$refs.tPagination)
 
-    let tableHeight = this.getHeight()
+    let tableHeight = this.$app.getContentHeight()
     if (this.isFullScreen)
       tableHeight = tableHeight + (topNavbar.outerHeight(true) || 0)
 
@@ -378,6 +370,24 @@ export default class ScoreTable extends Vue {
       title += `[当前为 ${sortType === -1 ? '降序' : '升序'}]`
     return title
   }
+
+  goChart (item: {[k in F]?: string}) {
+    if (this.data === null) return
+
+    const query: ApiT.ChartParams = {
+      examGrp: this.data.examConf.Grp,
+      where: JSON.stringify({
+        NAME: item.NAME,
+        SCHOOL: item.SCHOOL,
+        CLASS: item.CLASS
+      } as {[k in F]?: string})
+    }
+
+    this.$router.push({
+      name: 'chart',
+      query: query as any
+    })
+  }
 }
 </script>
 
@@ -393,6 +403,13 @@ table {
   max-width: 100%;
   margin-bottom: 20px;
   font-size: 15px;
+
+  .clickable-text {
+    cursor: pointer;
+    &:hover {
+      color: var(--mainColor)
+    }
+  }
 }
 
 .table > thead > tr > th,
