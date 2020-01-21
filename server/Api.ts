@@ -1,4 +1,5 @@
 import F, { ScoreData } from './Field'
+import { F_SUBJ, F_EXT_SUM } from './Field/Grp'
 import { transDict as FTD } from './Field/Trans'
 import * as ApiT from './ApiTypes'
 import Utils from './Utils'
@@ -31,22 +32,22 @@ api.get('/query', function query (req, res) {
     exam: examName,
     where: whereJsonStr,
     page: pageStr,
-    pagePer: pagePerStr,
+    pageSize: pageSizeStr,
     sort: sortJsonStr
   } = req.query as ApiT.QueryParams
 
   const exam = Utils.getExamByReq(req, res)
   if (!exam) return
 
-  let conditionList: { [key in F]?: string|RegExp } = {}
+  let condList: { [key in F]?: string|RegExp } = {}
   let sortList: { [key in F]?: 1|-1 } = {}
 
   try {
-    if (whereJsonStr) conditionList = JSON.parse(whereJsonStr)
+    if (whereJsonStr) condList = JSON.parse(whereJsonStr)
     if (sortJsonStr) sortList = JSON.parse(sortJsonStr)
 
-    if (conditionList.NAME) {
-      conditionList.NAME = new RegExp(`${conditionList.NAME}`, 'g')
+    if (condList.NAME) {
+      condList.NAME = new RegExp(`${condList.NAME}`, 'g')
     }
   } catch {
     Utils.error(res, `参数 JSON 解析错误`)
@@ -56,10 +57,21 @@ api.get('/query', function query (req, res) {
     sortList = { SCORED: -1 }
   }
 
-  const pagePer: number = !!pagePerStr && !isNaN(pagePerStr) ? Number(pagePerStr) : 50
+  let dataDesc = ''
+  if (_.isEmpty(condList))
+    dataDesc = '全部考生成绩'
+  else if (_.has(condList, F.NAME))
+    dataDesc = `姓名满足 “${condList.NAME}” 的考生成绩`
+  else if (_.has(condList, F.SCHOOL) && !_.has(condList, F.CLASS))
+    dataDesc = `${condList.SCHOOL} · 全校成绩`
+  else if (_.has(condList, F.SCHOOL) && _.has(condList, F.CLASS))
+    dataDesc = `${condList.SCHOOL} ${condList.CLASS} · 班级成绩`
+
+
+  const pageSize: number = !!pageSizeStr && !isNaN(pageSizeStr) ? Number(pageSizeStr) : 50
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
 
-  exam.Data.find(conditionList).sort(sortList).exec((err: Error, rawData) => {
+  exam.Data.find(condList).sort(sortList).exec((err: Error, rawData) => {
     if (err) Utils.error(res, `数据获取错误 ${err.message}`)
 
     const data: ScoreData[] = [] // 成绩数据
@@ -75,13 +87,24 @@ api.get('/query', function query (req, res) {
       })
     })
 
-    Utils.success(res, '数据获取成功', <ApiT.QueryData>{
-      ...Utils.getPaginatedData(data, page, pagePer),
+    // 平均值计算
+    const avgFields = [...F_SUBJ, ...F_EXT_SUM]
+    const avgList: {[field in F]?: number} = {}
+    _.forEach(_.intersection(avgFields, exam.DataFieldList), (f) => {
+      avgList[f] = _.sum(_.flatMap(rawData, o => o[f])) / (rawData.length || 1)
+    })
+
+    const respData: ApiT.QueryData = {
+      dataDesc,
+      ...Utils.getPaginatedData(data, page, pageSize),
       examConf: exam.getConf(),
       fieldList: exam.DataFieldList,
-      conditionList,
+      avgList,
+      condList,
       sortList
-    })
+    }
+
+    Utils.success(res, '数据获取成功', respData)
   })
 })
 

@@ -2,12 +2,12 @@
   <div class="grades-table card">
     <div v-if="data !== null" class="card-header">
       <h2 class="card-title" data-wlytable="title">
-        {{ data.examConf.Label }} - 全市考生成绩
+        {{ data.examConf.Label }} - {{ data.dataDesc }}
         <span
           style="font-size: 13px;vertical-align: bottom;"
         >[页码 {{ data.page }}/{{ data.lastPage }}]</span>
       </h2>
-      <small class="card-subtitle">共有 {{ data.total }} 人</small>
+      <small class="card-subtitle">{{ data.total }} 人</small>
       <div class="actions">
         <span class="actions__item show-top-badge" @click="$searchLayer.toggle()">
           <i class="zmdi zmdi-search"></i>
@@ -55,7 +55,7 @@
                   <span
                     :class="getFieldItemClass(f)"
                     :title="getFieldItemHoverTitle(f)"
-                  >{{ getFieldItemLabel(f) }}</span>
+                  >{{ transField(f) }}</span>
                 </th>
               </tr>
             </thead>
@@ -68,7 +68,7 @@
                 <th
                   v-for="(f, i) in ViewFieldList"
                   :key="i"
-                >{{ getFieldItemLabel(f) }}</th>
+                >{{ transField(f) }}</th>
               </tr>
             </thead>
             <tbody>
@@ -117,20 +117,20 @@
     <LoadingLayer ref="tLoading" />
 
     <ScoreTableDialog ref="tableCtrlDialog" title="表格显示调整">
-      <div class="table-ctrl-dialog">
+      <div v-if="data !== null" class="table-ctrl-dialog">
           <span class="dialog-label">点按下列方块来 显示 / 隐藏 字段</span>
-          <div v-if="data !== null" class="field-list">
+          <div class="field-list">
             <span
               v-for="(f, i) in FieldList"
               :key="i"
               :class="{ 'active': !HideFieldList.includes(f) }"
               class="field-item"
               @click="toggleFieldView(f)"
-            >{{ getFieldItemLabel(f) }}</span>
+            >{{ transField(f) }}</span>
           </div>
           <span class="dialog-label">每页显示项目数量 （数字不宜过大）</span>
           <div class="page-per-show">
-            <input type="number" class="page-per-show-input" placeholder="每页显示数" min="1" value="50" />
+            <input type="number" class="page-per-show-input" placeholder="每页显示数" min="1" :value="data.pageSize" />
           </div>
           <span class="dialog-label">表格字体大小调整</span>
           <div class="table-font-size-control">
@@ -142,27 +142,21 @@
     </ScoreTableDialog>
 
     <ScoreTableDialog ref="tableDataDownloadDialog" title="保存数据为电子表格">
-      <span class="dialog-label">保存 一中 - 高一下 期末 [理科] 的 全市考生成绩 为电子表格</span>
-      <span class="dialog-btn" data-dialog-func="save-now">保存 仅第 1 页 数据</span>
-      <span class="dialog-btn" data-dialog-func="save-now-noPaging">保存 第 1~10 页 数据</span>
-      <span class="dialog-label">保存 一中 - 高一下 期末 [理科] 全部数据为电子表格</span>
-      <span class="dialog-btn" data-dialog-func="save-noPaging">保存 全市成绩</span>
+      <span v-if="data !== null">
+        <span class="dialog-label">保存 "{{ data.examConf.Label }}" 的 "{{ data.dataDesc }}" 为电子表格</span>
+        <span class="dialog-btn" data-dialog-func="save-now">保存 仅第 {{ data.page }} 页 数据</span>
+        <span class="dialog-btn" data-dialog-func="save-now-noPaging">保存 第 1~{{ data.lastPage }} 页 数据</span>
+        <span class="dialog-label">保存 "{{ data.examConf.Label }}" 的全部数据为电子表格</span>
+        <span class="dialog-btn" data-dialog-func="save-noPaging">保存 全部成绩</span>
+      </span>
     </ScoreTableDialog>
 
     <ScoreTableDialog ref="tableDataCounterDialog" title="数据统计">
-      <div class="table-data-counter">
-      <span class="dialog-label">数据 "全市考生成绩" 平均值</span>
-      <span class="data-item">
-        <span class="data-name">总分</span>
-        <span class="data-value">470.775406504065</span>
-      </span>
-      <span class="data-item">
-        <span class="data-name">语文</span>
-        <span class="data-value">97.96036585365853</span>
-      </span>
-      <span class="data-item">
-        <span class="data-name">数学</span>
-        <span class="data-value">94.47154471544715</span>
+      <div v-if="data !== null" class="table-data-counter">
+      <span class="dialog-label">数据 "{{ data.dataDesc }}" 平均值</span>
+      <span v-for="(avg, f) in data.avgList" :key="f" class="data-item">
+        <span class="data-name">{{ transField(f) }}</span>
+        <span class="data-value">{{ avg }}</span>
       </span>
       </div>
     </ScoreTableDialog>
@@ -241,7 +235,7 @@ export default class ScoreTable extends Vue {
     let params: ApiT.QueryParams = {
       exam: 'test',
       page: 1,
-      pagePer: 50
+      pageSize: 50
     }
     if (this.$route.query) params = { ...params, ...this.$route.query }
     this.onRouteQueryChanged(params as ApiT.QueryParams)
@@ -365,7 +359,7 @@ export default class ScoreTable extends Vue {
     headerTableEl.width((bodyTableEl.outerWidth(true) || 0) - 2) // minus the 2px border-width
   }
 
-  getFieldItemLabel (fieldName: F) {
+  transField (fieldName: F) {
     return FTrans(fieldName)
   }
 

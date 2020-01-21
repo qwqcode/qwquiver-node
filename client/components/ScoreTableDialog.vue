@@ -204,7 +204,7 @@ export default class ScoreTableDialog extends Vue {
     }
 
     .data-name {
-      flex-basis: 50px;
+      flex-basis: 80px;
     }
 
     .data-value {

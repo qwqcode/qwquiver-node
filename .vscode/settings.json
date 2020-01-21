@@ -4,6 +4,7 @@
     "Parms",
     "argparse",
     "autoload",
+    "cond",
     "consola",
     "fastify",
     "nuxtjs",
