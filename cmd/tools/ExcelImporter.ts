@@ -131,21 +131,17 @@ export default function ExcelImporter (srcFileName: string) {
   // 总分从大到小排序
   tableDataItems = _.sortBy(tableDataItems, o => -o.SCORED)
 
+  consola.success(`表格数据已解析`)
+
   // 创建 Exam 实例
   const exam = new Exam(examName)
 
   // 导入表格数据到文件
-  const tableDataLen = tableDataItems.length
-  tableDataItems.forEach((item, i) => {
-    exam.Data.insert(item, (err) => {
-      if (err) consola.error(`表格数据 i=${i}：${err.message}`)
-      if (i+1 === tableDataLen) onFinish()
-    })
-  })
+  exam.Data.insert(tableDataItems, (err) => {
+    if (err) consola.error(`表格数据写入文件：${err.message}`)
 
-  function onFinish () {
     ExamIndexFile.update([exam])
     consola.success(`更新数据表索引文件`)
     consola.success(`导入任务执行完毕`)
-  }
+  })
 }
