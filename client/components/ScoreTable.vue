@@ -515,7 +515,7 @@ label {
 
       &.sort-desc,
       &.sort-asc {
-        color: #1a73e8;
+        color: var(--mainColor);
 
         &:after {
           font-family: Material-Design-Iconic-Font;
@@ -568,7 +568,7 @@ label {
       .ranking {
         font-size: 12px;
         vertical-align: text-top;
-        color: #1a73e8;
+        color: var(--mainColor);
         position: absolute;
         margin-left: 3px;
       }
@@ -607,7 +607,7 @@ label {
 
   .paginate-button {
     &.current {
-      background-color: #2ebcfc;
+      background-color: var(--mainColor);
       color: #fff;
       cursor: default;
     }

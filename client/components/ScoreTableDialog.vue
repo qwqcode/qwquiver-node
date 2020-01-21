@@ -70,7 +70,7 @@ export default class ScoreTableDialog extends Vue {
     padding: 5px;
 
     &:hover {
-      color: #1a73e8;
+      color: var(--mainColor);
     }
   }
 
@@ -86,7 +86,7 @@ export default class ScoreTableDialog extends Vue {
     word-break: break-all;
     white-space: normal;
     text-align: left;
-    border-left: 1px solid #2196f3;
+    border-left: 1px solid var(--mainColor);
     padding-left: 15px;
     border-radius: 0;
     margin-top: 30px;
@@ -108,7 +108,7 @@ export default class ScoreTableDialog extends Vue {
     margin-bottom: 15px;
 
     &:hover {
-      color: #2196f3;
+      color: var(--mainColor);
     }
   }
 
@@ -151,7 +151,7 @@ export default class ScoreTableDialog extends Vue {
       transition: 0.3s all;
 
       &:focus {
-        border: 1px solid #2196f3;
+        border: 1px solid var(--mainColor);
       }
     }
 

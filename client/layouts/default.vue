@@ -81,7 +81,7 @@ export default class Default extends Vue {
 }
 
 .wly-table-header thead th span.select {
-  color: #1a73e8;
+  color: var(--mainColor);
 }
 
 .wly-table-header thead th span.select:after {

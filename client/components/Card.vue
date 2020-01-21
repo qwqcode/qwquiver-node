@@ -313,7 +313,7 @@ export default class Card extends Vue {}
 }
 
 .actions:not(.actions--inverse) .actions__item:hover {
-  color: #2196F3;
+  color: var(--mainColor);
 }
 
 .actions:not(.actions--inverse) .actions__item.actions__item--active {

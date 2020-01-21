@@ -44,8 +44,8 @@ export default function ExcelImporter (srcFileName: string) {
   xlsData.forEach((rowValues, rowIndex) => {
     if (rowIndex === 0) return
     const dataItem: any = {}
-    _.forEach(xlsFieldToColPos, (colPos: number, filedName: string) => {
-      dataItem[filedName] = rowValues[colPos] || null
+    _.forEach(xlsFieldToColPos, (colPos: number, fieldName: string) => {
+      dataItem[fieldName] = rowValues[colPos] || null
     })
     tableDataItems.push(dataItem)
   })
