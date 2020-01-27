@@ -170,7 +170,6 @@ import LoadingLayer from './LoadingLayer.vue'
 import ScoreTableDialog from './ScoreTableDialog.vue'
 import F, { ScoreData } from '~~/server/Field'
 import * as FG from '~~/server/Field/Grp'
-import { FTrans } from '~~/server/Field/Trans'
 import * as ApiT from '~~/server/ApiTypes'
 import $ from 'jquery'
 import _ from 'lodash'
@@ -232,14 +231,6 @@ export default class ScoreTable extends Vue {
     $(window).resize(() => {
       this.adjustDisplay()
     })
-
-    let params: ApiT.QueryParams = {
-      exam: 'test',
-      page: 1,
-      pageSize: 50
-    }
-    if (this.$route.query) params = { ...params, ...this.$route.query }
-    this.onRouteQueryChanged(params as ApiT.QueryParams)
   }
 
   @Watch('data')
@@ -252,17 +243,25 @@ export default class ScoreTable extends Vue {
   }
 
   @Watch('$route.query')
-  async onRouteQueryChanged (query: any) {
+  public async onRouteQueryChanged (query: any) {
     if (query === this.params) return
 
     this.loading.show()
     this.params = query
-    const respData = await this.$axios.$get('./api/query', {
+    const resp = await this.$axios.$get('./api/query', {
       params: this.params
     })
     this.loading.hide()
-    if (respData.success) {
-      this.data = respData.data
+    if (resp.success && !!resp.data) {
+      this.data = resp.data
+      // 初始化配置装载
+      if (!!this.data && !!this.data.initConf) {
+        if (this.params) {
+          delete this.params.init // 删除初始化请求参数
+          this.params.exam = this.data.examConf.Name
+        }
+        this.$app.Conf = this.data.initConf
+      }
     }
   }
 
@@ -351,8 +350,8 @@ export default class ScoreTable extends Vue {
     headerTableEl.width((bodyTableEl.outerWidth(true) || 0) - 2) // minus the 2px border-width
   }
 
-  transField (fieldName: F) {
-    return FTrans(fieldName)
+  transField (f: F) {
+    return this.$app.transField(f)
   }
 
   getFieldItemClass (fieldName: F) {

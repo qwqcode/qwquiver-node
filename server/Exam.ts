@@ -8,6 +8,9 @@ import _ from 'lodash'
 
 /** 数据表配置 */
 export interface EXAM_CONF {
+  /** 名称 */
+  Name: string
+
   /** 标签 */
   Label?: string
 
@@ -28,17 +31,18 @@ export interface EXAM_CONF {
  * 成绩 数据表
  */
 export default class Exam {
-  public Name: string
+  public get Name () {
+    return this.Conf.Name
+  }
 
   /** 数据 */
   public Data: DataStore<ScoreData>
 
   public readonly Conf: EXAM_CONF
 
-  constructor (name: string, conf: EXAM_CONF = {}) {
-    const dataFilename = path.join(DATA_PATH, `${name}.tb`)
+  constructor (conf: EXAM_CONF) {
+    const dataFilename = path.join(DATA_PATH, `${conf.Name}.tb`)
 
-    this.Name = name
     this.Conf = conf
     this.Data = new DataStore({ filename: dataFilename, autoload: true })
   }

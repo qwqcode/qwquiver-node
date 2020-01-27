@@ -20,10 +20,10 @@
         </li>
       </ul>
       <h2 class="list-label">数据列表</h2>
-      <ul v-if="!!data.examList">
-        <li v-for="(exam, name) in data.examList" :key="name" :class="{ active: false }">
-          <span @click="switchExam(name)">
-            <i class="zmdi zmdi-trending-up"></i> {{ exam.label || name }}
+      <ul v-if="!!$app.ExamMapSorted">
+        <li v-for="(exam) in $app.ExamMapSorted" :key="exam.Name" :class="{ active: !!$scoreTable && !!$scoreTable.params && $scoreTable.params.exam === exam.Name }">
+          <span @click="switchExam(exam.Name)">
+            <i class="zmdi zmdi-trending-up"></i> {{ exam.Label || exam.Name }}
           </span>
         </li>
       </ul>
@@ -33,6 +33,7 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
+import _ from 'lodash'
 
 @Component({})
 export default class Sidebar extends Vue {
@@ -41,18 +42,7 @@ export default class Sidebar extends Vue {
   }
 
   mounted () {
-    this.fetchConf()
-  }
 
-  data: any = {}
-
-  async fetchConf () {
-    const respData = await this.$axios.$get('./api/conf', {
-      params: {}
-    })
-    if (respData.success) {
-      this.data = respData.data
-    }
   }
 
   switchExam (name: string) {

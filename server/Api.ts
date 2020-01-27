@@ -14,27 +14,36 @@ api.get('/', (req, res) => {
   res.send('Hello, QWQUIVER!')
 })
 
-api.get('/conf', (req, res) => {
-  const examList = Database.getExamIndex()
-  const examGrpList = _.uniq(_.flatMap(examList, (o) => o.Grp || ''))
-  const fieldTransDict = FTD
-
-  Utils.success(res, '', {
-    examList,
-    examGrpList,
-    fieldTransDict
-  })
-}
-)
-
 api.get('/query', (req, res) => {
   const {
     exam: examName,
     where: whereJsonStr,
     page: pageStr,
     pageSize: pageSizeStr,
-    sort: sortJsonStr
+    sort: sortJsonStr,
+    init: isInitReq
   } = req.query as ApiT.QueryParams
+
+  let initConf: ApiT.ConfData|undefined
+  if (isInitReq) {
+    // 若为初始化请求
+    const examMap = Database.getExamMap()
+    const examGrpList = _.uniq(_.flatMap(examMap, (o) => o.Grp || ''))
+
+    if (examMap.length <= 0) {
+      Utils.error(res, '未找到任何考试数据，请导入数据')
+      return
+    }
+
+    if (!req.query.exam)
+      req.query.exam = examMap[0].Name // 设置默认 exam
+
+    initConf = {
+      examMap,
+      examGrpList,
+      fieldTransDict: FTD
+    }
+  }
 
   const exam = Utils.getExamByReq(req, res)
   if (!exam) return
@@ -94,15 +103,20 @@ api.get('/query', (req, res) => {
       avgList[f] = _.sum(_.flatMap(rawData, o => o[f])) / (rawData.length || 1)
     })
 
+    const examConf = exam.getConf()
     const respData: ApiT.QueryData = {
+      examName: examConf.Name,
       dataDesc,
       ...Utils.getPaginatedData(data, page, pageSize),
-      examConf: exam.getConf(),
+      examConf,
       fieldList: exam.DataFieldList,
       avgList,
       condList,
       sortList
     }
+
+    if (initConf)
+      respData.initConf = initConf
 
     Utils.success(res, '数据获取成功', respData)
   })

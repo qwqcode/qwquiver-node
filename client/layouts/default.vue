@@ -17,18 +17,57 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
+import * as ApiT from '~~/server/ApiTypes'
+import F from '~~/server/Field'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import CardCSSCode from '@/components/Card.vue'
 import Layers from '@/components/layers'
 import $ from 'jquery'
+import _ from 'lodash'
 
 @Component({
   components: { TopHeader, Sidebar, ...Layers, CardCSSCode }
 })
 export default class Default extends Vue {
+  Conf: ApiT.ConfData|null = null
+
   created () {
     Vue.prototype.$app = this
+  }
+
+  mounted () {
+    // 载入最新的考试数据
+    if (this.$scoreTable) {
+      let params: ApiT.QueryParams = {
+        page: 1,
+        pageSize: 50,
+        init: true
+      }
+      if (this.$route.query) params = { ...params, ...this.$route.query }
+      this.$scoreTable.onRouteQueryChanged(params as ApiT.QueryParams)
+    }
+  }
+
+  get ExamMap () {
+    if (this.Conf === null) return null
+    return this.Conf.examMap
+  }
+
+  get ExamMapSorted () {
+    if (this.ExamMap === null) return null
+    const arr = _.sortBy(this.$app.ExamMap, o => o.Date ? -(new Date(o.Date).getTime()) : -1)
+    return arr
+  }
+
+  get FieldTransDict () {
+    if (this.Conf === null) return null
+    return this.Conf.fieldTransDict
+  }
+
+  transField (f: F) {
+    if (!this.FieldTransDict) return f
+    return this.FieldTransDict[f] || f
   }
 
   get AllLayersNameList () {

@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx'
 import F, { ScoreData } from '../../server/Field'
 import { transDict as FT } from '../../server/Field/Trans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../server/Field/Grp'
-import Database, { DATA_PATH, ExamIndexFile } from '../../server/Database'
+import Database, { DATA_PATH, ExamMapFile } from '../../server/Database'
 import Exam from '../../server/Exam'
 import DataStore from 'nedb'
 import _ from 'lodash'
@@ -134,13 +134,15 @@ export default function ExcelImporter (srcFileName: string) {
   consola.success(`表格数据已解析`)
 
   // 创建 Exam 实例
-  const exam = new Exam(examName)
+  const exam = new Exam({
+    Name: examName
+  })
 
   // 导入表格数据到文件
   exam.Data.insert(tableDataItems, (err) => {
     if (err) consola.error(`表格数据写入文件：${err.message}`)
 
-    ExamIndexFile.update([exam])
+    ExamMapFile.update([exam])
     consola.success(`更新数据表索引文件`)
     consola.success(`导入任务执行完毕`)
   })

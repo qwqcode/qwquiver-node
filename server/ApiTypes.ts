@@ -1,5 +1,6 @@
 import F from './Field'
 import { EXAM_CONF } from './Exam'
+import { EXAM_MAP } from './Database'
 
 export interface CommonParms {
   /** 成绩数据表名 */
@@ -19,19 +20,28 @@ export interface PaginatedData {
   list: any[]
 }
 
+export interface ConfData {
+  examMap: EXAM_MAP
+  examGrpList: string[]
+  fieldTransDict: {[f in F]: string}
+}
+
 export interface QueryParams extends CommonParms {
   where?: string
   page?: number
   pageSize?: number
   sort?: string
+  init?: boolean
 }
 export interface QueryData extends PaginatedData {
+  examName: string
   dataDesc: string
   examConf: EXAM_CONF
   fieldList: F[]
   avgList: { [key in F]?: number }
   condList: { [key in F]?: string|RegExp }
   sortList: { [key in F]?: 1|-1 }
+  initConf?: ConfData
 }
 
 export interface ChartParams {
