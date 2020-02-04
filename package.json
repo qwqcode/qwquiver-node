@@ -2,7 +2,7 @@
   "name": "qwquiver",
   "version": "0.0.1",
   "description": "A website for exploring and analyzing exam results.",
-  "author": "qwqcode",
+  "author": "qwqcode <1149527164@qq.com>",
   "private": true,
   "scripts": {
     "dev": "nuxt-ts",

@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar">
+  <div :class="{ 'hide': !isShow }" class="sidebar">
     <div class="widget link-list">
       <h2 class="list-label">基本</h2>
       <ul>
@@ -37,6 +37,8 @@ import _ from 'lodash'
 
 @Component({})
 export default class Sidebar extends Vue {
+  isShow = true
+
   created () {
     Vue.prototype.$sidebar = this
   }
@@ -48,6 +50,24 @@ export default class Sidebar extends Vue {
   switchExam (name: string) {
     if (this.$scoreTable) {
       this.$scoreTable.switchExam(name)
+    }
+  }
+
+  show () {
+    this.isShow = true
+    this.$app.setContentAreaFull(false)
+  }
+
+  hide () {
+    this.$app.setContentAreaFull(true)
+    this.isShow = false
+  }
+
+  toggle () {
+    if (this.isShow) {
+      this.hide()
+    } else {
+      this.show()
     }
   }
 }
@@ -67,7 +87,7 @@ export default class Sidebar extends Vue {
   transform: translate(0px, 0px);
   transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
 
-  &.sidebar.sidebar-hide {
+  &.sidebar.hide {
     transform: translate(-270px, 0px) !important;
   }
 }

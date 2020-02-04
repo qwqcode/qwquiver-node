@@ -8,7 +8,7 @@
     <div class="wrap">
       <Sidebar />
 
-      <div class="main-content-area">
+      <div :class="{ 'full': contentAreaFull }" class="main-content-area">
         <nuxt class="content-inner" />
       </div>
     </div>
@@ -31,6 +31,7 @@ import _ from 'lodash'
 })
 export default class Default extends Vue {
   Conf: ApiT.ConfData|null = null
+  contentAreaFull = false
 
   created () {
     Vue.prototype.$app = this
@@ -82,6 +83,10 @@ export default class Default extends Vue {
       80
     )
   }
+
+  setContentAreaFull (val) {
+    this.contentAreaFull = val
+  }
 }
 </script>
 
@@ -98,10 +103,15 @@ export default class Default extends Vue {
   }
 
   .main-content-area {
+    $paddingLR: 25px;
     padding-left: 300px;
-    padding-right: 25px;
+    padding-right: $paddingLR;
     padding-top: 80px;
     padding-bottom: 10px;
+
+    &.full {
+      padding-left: $paddingLR !important;
+    }
   }
 }
 

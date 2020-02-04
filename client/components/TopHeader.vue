@@ -2,7 +2,7 @@
   <div class="top-header">
     <div class="main-navbar">
       <div class="left">
-        <div class="sidebar-toggle-btn">
+        <div class="sidebar-toggle-btn" @click="$sidebar.toggle()">
           <i class="zmdi zmdi-menu"></i>
         </div>
         <span class="brand">
