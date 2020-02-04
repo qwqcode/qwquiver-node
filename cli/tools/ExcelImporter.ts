@@ -5,22 +5,33 @@ import * as XLSX from 'xlsx'
 import F, { ScoreData } from '../../server/Field'
 import { transDict as FT } from '../../server/Field/Trans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../server/Field/Grp'
-import Database, { DATA_PATH, ExamMapFile } from '../../server/Database'
-import Exam from '../../server/Exam'
+import Database, { DATA_PATH, ExamMapFile, DataUpdatedSignFile } from '../../server/Database'
+import Exam, { EXAM_CONF } from '../../server/Exam'
 import DataStore from 'nedb'
 import _ from 'lodash'
+import inquirer from 'inquirer'
 
-export default function ExcelImporter (srcFileName: string) {
+export default async function ExcelImporter (srcFileName: string, examConf?: any, force: boolean = false) {
   if (!fs.existsSync(srcFileName)) {
     consola.error(`表格文件不存在，路径有误`)
-    process.exit(1)
+    process.exit()
   }
 
-  const examName = path.basename(srcFileName).replace(path.extname(srcFileName), '')
+  const examName: string = examConf.Name || path.basename(srcFileName).replace(path.extname(srcFileName), '')
+  if (/[\\/:*?"<>|]/g.test(examName)) {
+    consola.error(`名称不能包含字符 "\\/:*?"<>|"，请修改名称`)
+    process.exit()
+  }
+
   const dataFileName = path.join(DATA_PATH, `${examName}.tb`)
+
   if (fs.existsSync(dataFileName)) {
-    consola.error(`表格文件之前已导入过。若需重新导入，请先删除文件："${dataFileName}"`)
-    process.exit(1)
+    if (!force) {
+      consola.warn(`Exam "${examName}" 已存在，导入会覆盖数据，若继续请加上 --force 参数`)
+      process.exit()
+    }
+
+    fs.unlinkSync(dataFileName)
   }
 
   const wb: XLSX.WorkBook = XLSX.readFile(srcFileName)
@@ -134,16 +145,16 @@ export default function ExcelImporter (srcFileName: string) {
   consola.success(`表格数据已解析`)
 
   // 创建 Exam 实例
-  const exam = new Exam({
-    Name: examName
-  })
+  const exam = new Exam({ Name: examName, ...(examConf||{}) })
 
   // 导入表格数据到文件
   exam.Data.insert(tableDataItems, (err) => {
-    if (err) consola.error(`表格数据写入文件：${err.message}`)
+    if (err) consola.error(`表格数据写入文件：`, err)
 
     ExamMapFile.update([exam])
     consola.success(`更新数据表索引文件`)
+
+    DataUpdatedSignFile.create()
     consola.success(`导入任务执行完毕`)
   })
 }

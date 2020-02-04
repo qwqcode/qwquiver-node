@@ -16,6 +16,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 'off',
     'nuxt/no-cjs-in-config': 'off',
     'no-unused-vars': 'off',
+    'require-await': 'off',
     'lines-between-class-members': 'off'
   },
   settings: {

@@ -38,15 +38,28 @@ export default class Exam {
   /** 数据 */
   public Data: DataStore<ScoreData>
 
+  /** 数据是否已装载 */
+  public isDataLoaded = false
+
   public readonly Conf: EXAM_CONF
 
   constructor (conf: EXAM_CONF) {
-    const dataFilename = path.join(DATA_PATH, `${conf.Name}.tb`)
-
     this.Conf = conf
-    this.Data = new DataStore({ filename: dataFilename, autoload: true })
+
+    const dataFilename = path.join(DATA_PATH, `${conf.Name}.tb`)
+    this.Data = new DataStore({ filename: dataFilename })
+
+    // 装载数据
+    this.Data.loadDatabase((err) => {
+      if (!err) {
+        this.isDataLoaded = true
+      } else {
+        consola.error(`Exam "${conf.Name}" 数据装载发生错误`, err)
+      }
+    })
   }
 
+  /** 数据字段缓存 */
   private _dataFieldList: F[]|null = null
 
   /** 数据字段列表 */
