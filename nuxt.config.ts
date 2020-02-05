@@ -32,14 +32,16 @@ const config: Configuration = {
    */
   css: [
     'normalize.css',
-    '@/assets/css/main.css',
+    '@/assets/css/main.scss',
     'material-design-iconic-font/dist/css/material-design-iconic-font.min.css',
     'vue2-animate/dist/vue2-animate.min.css'
   ],
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: [],
+  plugins: [
+    '@/plugins/jQuery.print.min.js'
+  ],
   /*
    ** Nuxt.js dev-modules
    */

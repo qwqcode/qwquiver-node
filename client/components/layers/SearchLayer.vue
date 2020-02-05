@@ -2,13 +2,20 @@
   <transition name="fade">
     <div v-if="isShow" class="search-panel" style="animation-duration: 0.14s">
       <div class="inner">
-        <div class="type-switch">
+        <div class="tab-bar">
           <span
             v-for="(iLabel, iType) in searchTypeList"
             :key="iType"
-            :class="{ active: iType === searchType }"
+            class="type-switch"
+            :class="{ 'active': iType === searchType }"
             @click="searchType = iType"
           >{{ iLabel }}</span>
+          <span v-if="!!searchExamName" class="curt-exam" @click="$refs.examSelect.show($event.target)">{{ searchExamLabel }}</span>
+          <SelectFloater
+            ref="examSelect"
+            :options="$app.ExamNameToLabelObj || {}"
+            :selected="searchExamName"
+            :change="switchExam" />
         </div>
         <form :class="`search-type-${searchType}`" class="search-form" @submit.prevent="submit">
           <div v-if="searchType === 'Name'">
@@ -28,7 +35,7 @@
 
           <div v-if="searchType === 'SchoolClass'">
             <LoadingLayer ref="scLoading" />
-            <div v-if="!!sc && !!sc.data" class="school-class-list">
+            <div v-if="!!sc && !!sc.data" class="school-class-list mini-scrollbar">
               <div class="list school-list">
                 <span
                   v-for="school in Object.keys(sc.data.school)"
@@ -39,14 +46,12 @@
                 >{{ school }}</span>
               </div>
               <div class="list class-list">
-                <template v-if="sc.openedSchool !== null && !!sc.data.school[sc.openedSchool]">
-                  <span
-                    v-for="className in sc.data.school[sc.openedSchool]"
-                    :key="className"
-                    class="item"
-                    @click="scSubmit(sc.openedSchool, className)"
-                  >{{ className }}</span>
-                </template>
+                <span
+                  v-for="className in scOpenedSchoolClassList"
+                  :key="className"
+                  class="item"
+                  @click="scSubmit(sc.openedSchool, className)"
+                >{{ className }}</span>
               </div>
             </div>
           </div>
@@ -59,6 +64,7 @@
 <script lang="ts">
 import { Component, Vue, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from '../LoadingLayer.vue'
+import SelectFloater from '../SelectFloater.vue'
 import F, { ScoreData } from '~~/server/Field'
 import * as ApiT from '~~/server/ApiTypes'
 import _ from 'lodash'
@@ -68,7 +74,7 @@ type SearchType = 'Name' | 'SchoolClass'
 const OutClickEvtName = 'click.SearchLayer'
 
 @Component({
-  components: { LoadingLayer }
+  components: { LoadingLayer, SelectFloater }
 })
 export default class SearchLayer extends Vue {
   created () {
@@ -80,10 +86,116 @@ export default class SearchLayer extends Vue {
   }
 
   isShow = false
+  searchType: SearchType = 'Name'
+  searchTypeList: { [key in SearchType]: string } = {
+    Name: '姓名',
+    SchoolClass: '学校班级'
+  }
+  searchData: { [key in F]?: string } = {}
+  searchExamName: string|null = null
+
+  scLoading!: LoadingLayer
+  sc: {
+    data: ApiT.AllSchoolData | null
+    openedSchool: string | null
+  } | null = null
+
+  get searchExamLabel () {
+    if (this.searchExamName === null) return null
+    return this.$app.ExamNameToLabelObj ? this.$app.ExamNameToLabelObj[this.searchExamName] || null : null
+  }
+
+  switchExam (examName: string) {
+    this.searchExamName = examName
+  }
+
+  @Watch('searchType')
+  onSearchTypeChanged (searchType: SearchType) {
+    this.searchData = {}
+
+    if (searchType === 'Name') {
+      this.focusSearchInput()
+    }
+
+    if (searchType === 'SchoolClass') {
+      this.$nextTick(() => {
+        this.scLoadSchoolClass()
+      })
+    }
+  }
+
+  @Watch('searchExamName')
+  onSearchExamNameChanged () {
+    if (this.searchType === 'SchoolClass') {
+      this.$nextTick(() => {
+        this.scLoadSchoolClass()
+      })
+    }
+  }
+
+  focusSearchInput () {
+    this.$nextTick(() => {
+      const input = (this.$refs.SearchInput as HTMLInputElement)
+      if (!input || !input.focus) return
+      input.focus()
+    })
+  }
+
+  submit () {
+    const reqParams: ApiT.QueryParams = { where: JSON.stringify(this.searchData), page: 1 }
+    if (this.searchExamName) reqParams.exam = this.searchExamName
+    this.$scoreTable.fetchData(reqParams)
+    this.$nextTick(() => {
+      this.searchData = {}
+      this.hide()
+    })
+  }
+
+  scSubmit (schoolName: string, className: string) {
+    this.searchData.SCHOOL = schoolName
+    this.searchData.CLASS = className
+    this.submit()
+  }
+
+  get scOpenedSchoolClassList () {
+    const sc = this.sc
+    if (sc === null || !sc.data || !sc.openedSchool || !sc.data.school[sc.openedSchool])
+      return []
+    return _.orderBy(sc.data.school[sc.openedSchool], (o) => {
+      const num = o.match(/[0-9]+/)
+      return num ? Number(num[0] || 0) : 0
+    }, ['asc'])
+  }
+
+
+  async scLoadSchoolClass () {
+    if (this.searchType !== 'SchoolClass') return
+    this.sc = null
+    this.scLoading = this.$refs.scLoading as LoadingLayer
+    this.scLoading.show()
+    let respData
+    try {
+      respData = await this.$axios.$get('./api/allSchoolClass', {
+        params: { exam: this.searchExamName }
+      })
+    } catch (err) {
+      this.$notify.error(String(err))
+    } finally {
+      this.scLoading.hide()
+    }
+    if (!respData.success) {
+      this.$notify.error(respData.msg)
+      return
+    }
+    const data = (respData.data || null) as ApiT.AllSchoolData
+    this.sc = { data, openedSchool: Object.keys(data.school)[0] || null }
+  }
+
   show () {
     this.isShow = true
     this.bindOutClickEvt()
     this.focusSearchInput()
+    this.searchExamName = this.$scoreTable.curtExamName
   }
 
   hide () {
@@ -93,7 +205,6 @@ export default class SearchLayer extends Vue {
 
   toggle () {
     this.isShow ? this.hide() : this.show()
-    this.isShow ? this.bindOutClickEvt() : this.unbindOutClickEvt()
   }
 
   bindOutClickEvt () {
@@ -109,70 +220,6 @@ export default class SearchLayer extends Vue {
 
   unbindOutClickEvt () {
     $(window).unbind(OutClickEvtName)
-  }
-
-  searchType: SearchType = 'Name'
-  searchTypeList: { [key in SearchType]: string } = {
-    Name: '姓名',
-    SchoolClass: '学校班级'
-  }
-  searchData: { [key in F]?: string } = {}
-
-  scLoading!: LoadingLayer
-  sc: {
-    data: ApiT.AllSchoolData | null
-    openedSchool: string | null
-  } | null = null
-
-  @Watch('searchType')
-  onSearchTypeChanged(searchType: SearchType) {
-    this.searchData = {}
-
-    if (searchType === 'Name') {
-      this.focusSearchInput()
-    }
-
-    if (searchType === 'SchoolClass') {
-      this.sc = null
-      this.$nextTick(async () => {
-        this.scLoading = this.$refs.scLoading as LoadingLayer
-        this.scLoading.show()
-        const respData = await this.$axios.$get('./api/allSchoolClass', {
-          params: { exam: 'test' }
-        })
-        if (!respData.success) return
-        const data = (respData.data || null) as ApiT.AllSchoolData
-        this.sc = { data, openedSchool: Object.keys(data.school)[0] || null }
-        this.scLoading.hide()
-      })
-    }
-  }
-
-  focusSearchInput () {
-    this.$nextTick(() => {
-      const input = (this.$refs.SearchInput as HTMLInputElement)
-      if (!input || !input.focus) return
-      input.focus()
-    })
-  }
-
-  submit () {
-    const reqParams: ApiT.QueryParams = { where: JSON.stringify(this.searchData), page: 1 }
-    if (this.$scoreTable !== undefined) {
-      this.$scoreTable.fetchData(reqParams)
-      this.$nextTick(() => {
-        this.searchData = {}
-        this.hide()
-      })
-    } else {
-      // this.$router.replace({ path: '/', query: reqParams as any })
-    }
-  }
-
-  scSubmit (schoolName: string, className: string) {
-    this.searchData.SCHOOL = schoolName
-    this.searchData.CLASS = className
-    this.submit()
   }
 }
 </script>
@@ -205,13 +252,13 @@ export default class SearchLayer extends Vue {
   position: relative;
 }
 
-.type-switch {
+.tab-bar {
   pointer-events: none;
   padding-left: 12px;
   display: flex;
   flex-direction: row;
 
-  & > span {
+  & > .type-switch {
     @extend %card;
     background: rgba(255, 255, 255, 0.8);
     pointer-events: all;
@@ -228,6 +275,39 @@ export default class SearchLayer extends Vue {
 
     &:hover {
       background: #fff;
+    }
+  }
+
+  & > .curt-exam {
+    position: relative;
+    pointer-events: all;
+    padding-left: 10px;
+    padding-right: 20px;
+    margin-left: auto;
+    margin-right: 10px;
+    margin-top: 6px;
+    color: var(--mainColor);
+    background: rgba(255, 255, 255, 0.8);
+    height: 24px;
+    line-height: 24px;
+    border-radius: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+    user-select: none;
+
+    &:hover {
+      background: #fff
+    }
+
+    &:after {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      padding-right: 8px;
+      content: '\f2f2';
+      font-family: 'Material-Design-Iconic-Font';
     }
   }
 }
@@ -279,8 +359,14 @@ export default class SearchLayer extends Vue {
   &.search-type-SchoolClass {
     height: 300px;
 
-    .school-class-list {
+    & > div {
       display: flex;
+      width: 100%;
+    }
+
+    & > div > .school-class-list {
+      display: flex;
+      width: 100%;
 
       .list {
         font-size: 13px;
@@ -289,7 +375,7 @@ export default class SearchLayer extends Vue {
         overflow-x: hidden;
 
         &.school-list {
-          flex: 20%;
+          flex: 30%;
           box-shadow: 0 -8px 6px rgba(0, 0, 0, 0.2);
 
           .item {
@@ -318,7 +404,7 @@ export default class SearchLayer extends Vue {
         }
 
         &.class-list {
-          flex: 80%;
+          flex: 70%;
           padding: 8px 13px 8px 23px;
 
           .item {

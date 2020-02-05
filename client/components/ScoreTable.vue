@@ -1,12 +1,17 @@
 <template>
-  <div class="grades-table card">
+  <div class="score-table card" :class="{ 'card--fullscreen': isFullScreen }">
     <div v-if="data !== null" class="card-header">
-      <h2 class="card-title" data-wlytable="title">
-        {{ data.examConf.Label }} - {{ data.dataDesc }}
+      <h2 ref="tTitle" class="card-title">
+        <span class="exam-label" @click="$refs.examSelect.show($event.target)">{{ data.examConf.Label }}</span> - {{ data.dataDesc }}
         <span
           style="font-size: 13px;vertical-align: bottom;"
         >[页码 {{ data.page }}/{{ data.lastPage }}]</span>
       </h2>
+      <SelectFloater
+        ref="examSelect"
+        :options="$app.ExamNameToLabelObj || {}"
+        :selected="curtExamName"
+        :change="switchExam" />
       <small class="card-subtitle">{{ data.total }} 人</small>
       <div class="actions">
         <span class="actions__item show-top-badge" @click="$searchLayer.toggle()">
@@ -17,7 +22,7 @@
           <i class="zmdi zmdi-download"></i>
           <span>下载</span>
         </span>
-        <span data-wly-toggle="wlyTablePrint" class="actions__item">
+        <span class="actions__item" @click="printScoreTable()">
           <i class="zmdi zmdi-print"></i>
           <span>打印</span>
         </span>
@@ -29,9 +34,9 @@
           <i class="zmdi zmdi-flash"></i>
           <span>平均分</span>
         </span>
-        <span data-wly-toggle="wlyTableFullScreen" class="actions__item">
-          <i class="zmdi zmdi-fullscreen"></i>
-          <span>全屏显示</span>
+        <span class="actions__item" @click="toggleFullScreen()">
+          <i class="zmdi" :class="`zmdi-fullscreen${isFullScreen ? '-exit' : ''}`"></i>
+          <span>{{ !isFullScreen ? '全屏显示' : '退出全屏' }}</span>
         </span>
       </div>
     </div>
@@ -62,7 +67,7 @@
           </table>
         </div>
         <div ref="tBody" class="wly-table-body">
-          <table class="table table-striped table-hover" style="margin-top: -47.8571px;">
+          <table class="table table-striped table-hover">
             <thead>
               <tr>
                 <th
@@ -86,6 +91,12 @@
         <div ref="tPagination" class="wly-table-pagination">
           <div class="paginate-simple">
             <a
+              v-if="!visiblePageBtn.includes(1)"
+              class="paginate-button"
+              title="第一页"
+              @click="switchPage(1)"
+            >1</a>
+            <a
               :class="{ disabled: data.page-1 <= 0 }"
               class="paginate-button previous"
               title="上一页"
@@ -107,6 +118,7 @@
               @click="switchPage(data.page+1)"
             ></a>
             <a
+              v-if="!visiblePageBtn.includes(data.lastPage)"
               class="paginate-button"
               title="最后一页"
               @click="switchPage(data.lastPage)"
@@ -135,9 +147,9 @@
           </div>
           <span class="dialog-label">表格字体大小调整</span>
           <div class="table-font-size-control">
-            <span class="font-size-minus">-</span>
-            <span class="font-size-value">15</span>
-            <span class="font-size-plus">+</span>
+            <span class="font-size-minus" @click="adjustTableFontSize(-2)">-</span>
+            <span ref="tFontSize" class="font-size-value">15</span>
+            <span class="font-size-plus" @click="adjustTableFontSize(+2)">+</span>
           </div>
       </div>
     </ScoreTableDialog>
@@ -167,6 +179,7 @@
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
+import SelectFloater from './SelectFloater.vue'
 import ScoreTableDialog from './ScoreTableDialog.vue'
 import F, { ScoreData } from '~~/server/Field'
 import * as FG from '~~/server/Field/Grp'
@@ -175,13 +188,36 @@ import $ from 'jquery'
 import _ from 'lodash'
 
 @Component({
-  components: { LoadingLayer, ScoreTableDialog }
+  components: { LoadingLayer, ScoreTableDialog, SelectFloater }
 })
 export default class ScoreTable extends Vue {
   data: ApiT.QueryData | null = null
   params: ApiT.QueryParams | null = null
   isFullScreen = false
   loading!: LoadingLayer
+
+  created () {
+    Vue.prototype.$scoreTable = this
+  }
+
+  mounted () {
+    this.loading = this.$refs.tLoading as LoadingLayer
+    $(window).resize(() => {
+      this.adjustDisplay()
+    })
+  }
+
+  /** 当前 Exam 名 */
+  get curtExamName () {
+    if (!this.data)
+      return this.params ? this.params.exam || null : null
+    return this.data.examConf.Name || null
+  }
+
+  /** 当前 Exam 标签 */
+  get curtExamLabel () {
+    return this.data ? this.data.examConf.Label || null : null
+  }
 
   /** 全部字段 */
   get FieldList () {
@@ -218,40 +254,40 @@ export default class ScoreTable extends Vue {
     })
   }
 
-  created () {
-    Vue.prototype.$scoreTable = this
-  }
-
-  destroyed () {
-    Vue.prototype.$scoreTable = undefined
-  }
-
-  mounted () {
-    this.loading = this.$refs.tLoading as LoadingLayer
-    $(window).resize(() => {
-      this.adjustDisplay()
-    })
-  }
-
   @Watch('data')
   onDataChanged () {
     this.$nextTick(() => {
       this.adjustDisplay()
+      $(this.$refs.tBody).bind('scroll.table-scroll-sync', (e) => {
+        $(this.$refs.tHeader).scrollLeft(($(e.target) as any).scrollLeft())
+        $(this.$refs.tHeader).scrollTop(($(e.target) as any).scrollTop())
+      })
     })
 
     // if (this.data === null) return
   }
 
   @Watch('$route.query')
-  public async onRouteQueryChanged (query: any) {
+  public async onRouteQueryChanged (query: object) {
     if (query === this.params) return
 
     this.loading.show()
     this.params = query
-    const resp = await this.$axios.$get('./api/query', {
-      params: this.params
-    })
-    this.loading.hide()
+    if (!this.params.exam) {
+      this.params.init = true
+    }
+
+    let resp:any
+    try {
+      resp = await this.$axios.$get('./api/query', {
+        params: this.params
+      })
+    } catch (err) {
+      this.$notify.error(String(err))
+    } finally {
+      this.loading.hide()
+    }
+
     if (resp.success && !!resp.data) {
       this.data = resp.data
       // 初始化配置装载
@@ -262,6 +298,8 @@ export default class ScoreTable extends Vue {
         }
         this.$app.Conf = this.data.initConf
       }
+    } else {
+      this.$notify.error(resp.msg)
     }
   }
 
@@ -269,11 +307,11 @@ export default class ScoreTable extends Vue {
     const reqParams: ApiT.QueryParams = !initialize
       ? { ...this.params, ...params }
       : params
-    this.$router.replace({ query: reqParams as any })
+    this.$router.push({ query: reqParams as any })
   }
 
-  switchExam (examName: string) {
-    this.fetchData({ exam: examName }, true)
+  switchExam (examName: string, initialize = false) {
+    this.fetchData({ exam: examName }, initialize)
   }
 
   switchPage (pageNum: number) {
@@ -300,11 +338,55 @@ export default class ScoreTable extends Vue {
       const pg = this.data.page - i
       if (pg > 0) arr.push(pg)
     }
-    for (let i = 0; i < rItemNum; i++) {
+    for (let i = 0; i < rItemNum + 1; i++) {
       const pg = this.data.page + i
       if (pg <= this.data.lastPage) arr.push(pg)
     }
     return arr
+  }
+
+  setFullScreen (val: boolean) {
+    if (val === true) {
+      this.$topHeader.hide()
+      // this.browserRequestFullScreen(document.body)
+    } else {
+      this.$topHeader.show()
+      // this.browserCancelFullScreen(document)
+    }
+
+    this.isFullScreen = val
+    this.$nextTick(() => {
+      this.adjustDisplay()
+    })
+  }
+
+  browserRequestFullScreen (el: any) {
+    const requestMethod = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullScreen
+
+    if (requestMethod) { // Native full screen.
+      requestMethod.call(el)
+    } else if (typeof (window as any).ActiveXObject !== "undefined") { // Older IE
+      const wscript = new (window as any).ActiveXObject("WScript.Shell")
+      if (wscript !== null) {
+        wscript.SendKeys("{F11}")
+      }
+    }
+  }
+
+  browserCancelFullScreen (el: any) {
+    const requestMethod = el.cancelFullScreen || el.webkitCancelFullScreen || el.mozCancelFullScreen || el.exitFullscreen
+    if (requestMethod) { // cancel full screen.
+      requestMethod.call(el)
+    } else if (typeof (window as any).ActiveXObject !== "undefined") { // Older IE.
+      const wscript = new (window as any).ActiveXObject("WScript.Shell")
+      if (wscript !== null) {
+        wscript.SendKeys("{F11}")
+      }
+    }
+  }
+
+  toggleFullScreen () {
+    this.setFullScreen(!this.isFullScreen)
   }
 
   adjustDisplay () {
@@ -334,7 +416,7 @@ export default class ScoreTable extends Vue {
     // 设置悬浮样式
     bodyTableEl.css(
       'margin-top',
-      `-${(bodyEl.find('table thead').outerHeight() || 1) - 1}`
+      `-${(bodyEl.find('table thead').outerHeight() || 1) + 2}px`
     )
 
     // 获取 body table thead tr 中每个 th 对象
@@ -348,6 +430,22 @@ export default class ScoreTable extends Vue {
         .width($(item).width() || '')
     })
     headerTableEl.width((bodyTableEl.outerWidth(true) || 0) - 2) // minus the 2px border-width
+  }
+
+  tableFontSize: number = 0
+
+  adjustTableFontSize (number: number) {
+    const curtFontSize = this.tableFontSize || Number($('.table').first().css('font-size').replace(/px$/, ''))
+    const calcSize = curtFontSize + number
+    if (calcSize <= 1) return
+    this.tableFontSize = calcSize
+    let style = $('#TableFontSize')
+    if (!style.length) {
+      style = $('<style id="TableFontSize"></style>').appendTo('head')
+    }
+    style.html(`.table {font-size: ${this.tableFontSize}px !important;}`);
+    (this.$refs.tFontSize as HTMLElement).innerHTML = String(this.tableFontSize)
+    this.adjustDisplay()
   }
 
   transField (f: F) {
@@ -387,10 +485,34 @@ export default class ScoreTable extends Vue {
       query: query as any
     })
   }
+
+  printScoreTable () {
+    ($(this.$refs.tBody).find('table').css('margin-top', '') as any).print({
+      globalStyles: true,
+      mediaPrint: false,
+      iframe: false,
+      prepend: `
+      <style>html, body {background-color: transparent !important;}*{font-size: 10px !important;}</style>
+      <h2 style="text-align: center;margin-bottom: 20px">${$(this.$refs.tTitle).text()}</h2>
+      `
+    })
+    this.adjustDisplay()
+  }
 }
 </script>
 
 <style scoped lang="scss">
+.score-table {
+  .card-title {
+    .exam-label {
+      cursor: pointer;
+      &:hover {
+        color: var(--mainColor)
+      }
+    }
+  }
+}
+
 /* table */
 table {
   border-spacing: 0;
@@ -619,6 +741,7 @@ label {
     height: 2.5rem;
     line-height: 2.5rem;
     text-align: center;
+    user-select: none;
   }
 
   .paginate-button {

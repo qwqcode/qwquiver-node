@@ -130,10 +130,12 @@ api.get('/allSchoolClass', (req, res) => {
 
   const respData: ApiT.AllSchoolData = { school: {} }
   _.forEach(exam.Data.getAllData(), (item: ScoreData) => {
+    if (!item.SCHOOL) return
     let classInSchool = respData.school[item.SCHOOL]
-    if (!classInSchool)
+    if (!classInSchool) // 初始化某个学校的班级列表
       classInSchool = respData.school[item.SCHOOL] = []
-    if (!classInSchool.includes(item.CLASS))
+
+    if (!!item.CLASS && !classInSchool.includes(item.CLASS))
       classInSchool.push(item.CLASS)
   })
 

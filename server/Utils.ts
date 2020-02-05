@@ -25,13 +25,13 @@ export default class Utils {
   static getExamByReq (req: Request, res: Response) {
     const { exam: examName } = req.query as ApiT.CommonParms
     if (!examName) {
-      Utils.error(res, `未选择数据`)
+      Utils.error(res, `未选择考试数据`)
       return null
     }
 
     const exam = Database.getExam(examName)
     if (!exam) {
-      Utils.error(res, `未找到数据 ${examName || ''}`)
+      Utils.error(res, `未找到考试数据 ${examName || ''}`)
       return null
     }
 
@@ -43,6 +43,6 @@ export default class Utils {
   }
 
   static error (res: Response, msg?: string, data?: Object) {
-    return res.status(500).send({ success: false, msg, data })
+    return res.status(200).send({ success: false, msg, data })
   }
 }

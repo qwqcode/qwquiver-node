@@ -1,6 +1,6 @@
 <template>
   <div class="top-header">
-    <div class="main-navbar">
+    <div class="main-navbar" :class="{ 'hide': !isShow }">
       <div class="left">
         <div class="sidebar-toggle-btn" @click="$sidebar.toggle()">
           <i class="zmdi zmdi-menu"></i>
@@ -28,7 +28,29 @@
 import { Component, Vue } from 'nuxt-property-decorator'
 
 @Component({})
-export default class TopHeader extends Vue {}
+export default class TopHeader extends Vue {
+  isShow = true
+
+  created () {
+    Vue.prototype.$topHeader = this
+  }
+
+  show () {
+    this.isShow = true
+  }
+
+  hide () {
+    this.isShow = false
+  }
+
+  toggle () {
+    if (this.isShow) {
+      this.hide()
+    } else {
+      this.show()
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -53,7 +75,7 @@ export default class TopHeader extends Vue {}
   align-items: center;
   transition: background 0.15s ease-in-out, transform 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
 
-  &.navbar-hide {
+  &.hide {
     transform: translate(0, -70px);
   }
 

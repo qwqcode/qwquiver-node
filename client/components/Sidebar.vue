@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ 'hide': !isShow }" class="sidebar">
+  <div class="sidebar" :class="{ 'hide': !isShow }">
     <div class="widget link-list">
       <h2 class="list-label">基本</h2>
       <ul>
@@ -21,7 +21,7 @@
       </ul>
       <h2 class="list-label">数据列表</h2>
       <ul v-if="!!$app.ExamMapSorted">
-        <li v-for="(exam) in $app.ExamMapSorted" :key="exam.Name" :class="{ active: !!$scoreTable && !!$scoreTable.params && $scoreTable.params.exam === exam.Name }">
+        <li v-for="(exam) in $app.ExamMapSorted" :key="exam.Name" :class="{ active: !!$scoreTable.params && $scoreTable.params.exam === exam.Name }">
           <span @click="switchExam(exam.Name)">
             <i class="zmdi zmdi-trending-up"></i> {{ exam.Label || exam.Name }}
           </span>
@@ -48,19 +48,23 @@ export default class Sidebar extends Vue {
   }
 
   switchExam (name: string) {
-    if (this.$scoreTable) {
-      this.$scoreTable.switchExam(name)
-    }
+    this.$scoreTable.switchExam(name, true)
   }
 
   show () {
     this.isShow = true
-    this.$app.setContentAreaFull(false)
+    this.$app.setContFullScreen(false)
+    this.$nextTick(() => {
+      this.$scoreTable.adjustDisplay()
+    })
   }
 
   hide () {
-    this.$app.setContentAreaFull(true)
+    this.$app.setContFullScreen(true)
     this.isShow = false
+    this.$nextTick(() => {
+      this.$scoreTable.adjustDisplay()
+    })
   }
 
   toggle () {

@@ -11,6 +11,8 @@
     "qwqcode",
     "qwquiver",
     "subcommands",
-    "subparsers"
+    "subparsers",
+    "typeof",
+    "unshift"
   ]
 }

@@ -157,6 +157,9 @@ export default class ScoreTableDialog extends Vue {
     }
 
     .table-font-size-control {
+      display: flex;
+      justify-content: center;
+      flex-direction: row;
       text-align: center;
       font-size: 18px;
       margin-top: 15px;
@@ -177,7 +180,6 @@ export default class ScoreTableDialog extends Vue {
     .table-font-size-control > span {
       box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
       padding: 4px 17px;
-      display: inline-block;
       transition: 0.3s all;
     }
 

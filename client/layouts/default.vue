@@ -8,7 +8,8 @@
     <div class="wrap">
       <Sidebar />
 
-      <div :class="{ 'full': contentAreaFull }" class="main-content-area">
+      <div :class="{ 'full': contFullScreen }" class="main-content-area">
+        <ScoreTable v-show="$route.name === 'index'" />
         <nuxt class="content-inner" />
       </div>
     </div>
@@ -21,17 +22,18 @@ import * as ApiT from '~~/server/ApiTypes'
 import F from '~~/server/Field'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
+import ScoreTable from '@/components/ScoreTable.vue'
 import CardCSSCode from '@/components/Card.vue'
 import Layers from '@/components/layers'
 import $ from 'jquery'
 import _ from 'lodash'
 
 @Component({
-  components: { TopHeader, Sidebar, ...Layers, CardCSSCode }
+  components: { TopHeader, Sidebar, ScoreTable, ...Layers, CardCSSCode }
 })
 export default class Default extends Vue {
   Conf: ApiT.ConfData|null = null
-  contentAreaFull = false
+  contFullScreen = false
 
   created () {
     Vue.prototype.$app = this
@@ -39,15 +41,13 @@ export default class Default extends Vue {
 
   mounted () {
     // 载入最新的考试数据
-    if (this.$scoreTable) {
-      let params: ApiT.QueryParams = {
-        page: 1,
-        pageSize: 50,
-        init: true
-      }
-      if (this.$route.query) params = { ...params, ...this.$route.query }
-      this.$scoreTable.onRouteQueryChanged(params as ApiT.QueryParams)
+    let params: ApiT.QueryParams = {
+      page: 1,
+      pageSize: 50,
+      init: true
     }
+    if (this.$route.query) params = { ...params, ...this.$route.query }
+    this.$scoreTable.onRouteQueryChanged(params as ApiT.QueryParams)
   }
 
   get ExamMap () {
@@ -59,6 +59,13 @@ export default class Default extends Vue {
     if (this.ExamMap === null) return null
     const arr = _.sortBy(this.$app.ExamMap, o => o.Date ? -(new Date(o.Date).getTime()) : -1)
     return arr
+  }
+
+  get ExamNameToLabelObj () {
+    if (this.ExamMap === null) return null
+    const obj = {}
+    _.forEach(this.ExamMapSorted, (e) => { obj[e.Name] = e.Label })
+    return obj
   }
 
   get FieldTransDict () {
@@ -84,8 +91,8 @@ export default class Default extends Vue {
     )
   }
 
-  setContentAreaFull (val) {
-    this.contentAreaFull = val
+  setContFullScreen (val: boolean) {
+    this.contFullScreen = val
   }
 }
 </script>
@@ -103,6 +110,7 @@ export default class Default extends Vue {
   }
 
   .main-content-area {
+    position: relative;
     $paddingLR: 25px;
     padding-left: 300px;
     padding-right: $paddingLR;

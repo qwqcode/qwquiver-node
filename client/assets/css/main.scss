@@ -119,3 +119,21 @@ a {
       opacity: 0
   }
 }
+
+.mini-scrollbar {
+  & > ::-webkit-scrollbar {
+    width: 5px
+  }
+
+  & > ::-webkit-scrollbar-track {
+    background: hsla(0,0%,66%,.14)
+  }
+
+  & > ::-webkit-scrollbar-thumb {
+    background: rgb(197, 197, 197)
+  }
+
+  & > ::-webkit-scrollbar-thumb:hover {
+    background: rgb(146, 146, 146)
+  }
+}
