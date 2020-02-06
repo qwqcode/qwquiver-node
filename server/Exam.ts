@@ -1,7 +1,7 @@
 import path from 'path'
 import consola from 'consola'
 import F, { ScoreData } from './Field'
-import { F_SUBJ, F_ALL } from './Field/Grp'
+import { F_SUBJ, F_ALL, F_TARGET_RANK } from './Field/Grp'
 import { DATA_PATH } from './Database'
 import DataStore from 'nedb'
 import _ from 'lodash'
@@ -46,7 +46,7 @@ export default class Exam {
   constructor (conf: EXAM_CONF) {
     this.Conf = conf
 
-    const dataFilename = path.join(DATA_PATH, `${conf.Name}.tb`)
+    const dataFilename = path.join(DATA_PATH, `${conf.Name}.qexam`)
     this.Data = new DataStore({ filename: dataFilename })
 
     // 装载数据
@@ -70,8 +70,16 @@ export default class Exam {
     _.forEach(this.Data.getAllData(), (rawItem) => {
       F_ALL.forEach((f) => {
         if (rawItem[f] === undefined) return // 若字段不存在
-        if (!fieldList.includes(f)) // 若是数据中新出现的字段
-          fieldList.push(f) // 记录新字段
+        if (fieldList.includes(f)) return // 若不是数据中新出现的字段
+        fieldList.push(f) // 记录新字段
+        // 加入排名字段
+        if (F_TARGET_RANK.includes(f)) {
+          const rfs = ['_RANK', '_SCHOOL_RANK', '_CLASS_RANK']
+          _.forEach(rfs, (rf) => {
+            const fXrf = (f + rf) as F
+            if (!fieldList.includes(fXrf)) fieldList.push(fXrf)
+          })
+        }
       })
     })
 

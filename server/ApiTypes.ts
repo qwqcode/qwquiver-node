@@ -23,7 +23,7 @@ export interface PaginatedData {
 export interface ConfData {
   examMap: EXAM_MAP
   examGrpList: string[]
-  fieldTransDict: {[f in F]: string}
+  fieldTransDict: {[f in F]?: string}
 }
 
 export interface QueryParams extends CommonParms {

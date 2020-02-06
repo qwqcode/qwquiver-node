@@ -54,10 +54,6 @@ api.get('/query', (req, res) => {
   try {
     if (whereJsonStr) condList = JSON.parse(whereJsonStr)
     if (sortJsonStr) sortList = JSON.parse(sortJsonStr)
-
-    if (condList.NAME) {
-      condList.NAME = new RegExp(`${condList.NAME}`, 'g')
-    }
   } catch {
     Utils.error(res, `参数 JSON 解析错误`)
     return
@@ -76,6 +72,9 @@ api.get('/query', (req, res) => {
   else if (_.has(condList, F.SCHOOL) && _.has(condList, F.CLASS))
     dataDesc = `${condList.SCHOOL} ${condList.CLASS} · 班级成绩`
 
+  if (condList.NAME) {
+    condList.NAME = new RegExp(`${condList.NAME}`, 'g')
+  }
 
   const pageSize: number = !!pageSizeStr && !isNaN(pageSizeStr) ? Number(pageSizeStr) : 50
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
@@ -90,7 +89,7 @@ api.get('/query', (req, res) => {
       const item: any = {}
       data.push(item)
 
-      // 遍历所有可能的字段名
+      // 遍历所有字段名
       exam.DataFieldList.forEach((f) => {
         item[f] = rawItem[f]
       })

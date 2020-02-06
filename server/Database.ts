@@ -61,7 +61,7 @@ class Database {
         return
       }
 
-      const dataFilename = path.join(DATA_PATH, `${conf.Name}.tb`)
+      const dataFilename = path.join(DATA_PATH, `${conf.Name}.qexam`)
       if (!fs.existsSync(dataFilename)) {
         consola.warn(`"${conf.Name}" 的数据文件丢失，找不到文件："${dataFilename}"`)
         return
@@ -144,8 +144,8 @@ export class ExamMapFile {
       examMap = examMap.filter(e => (rangeExams.find(re => re.Name === e.Name) === undefined))
 
     // 读取所有数据文件
-    fs.readdirSync(DATA_PATH).filter(o => /\.tb$/.test(o)).forEach((fileName) => {
-      const examName = fileName.replace(/\.tb$/i,'')
+    fs.readdirSync(DATA_PATH).filter(o => /\.qexam$/.test(o)).forEach((fileName) => {
+      const examName = fileName.replace(/\.qexam$/i,'')
 
       if (examMap.find(e => e.Name === examName))
         return // 若 Conf 已存在，直接跳过

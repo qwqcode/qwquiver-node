@@ -3,7 +3,7 @@ import NotifyLayer from '@/components/layers/NotifyLayer.vue'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import SearchLayer from '@/components/layers/SearchLayer.vue'
-import ScoreTable from '@/components/ScoreTable.vue'
+import Explorer from '@/components/Explorer.vue'
 
 declare module 'vue/types/vue' {
   interface Vue {
@@ -12,6 +12,6 @@ declare module 'vue/types/vue' {
     $topHeader: TopHeader
     $sidebar: Sidebar
     $searchLayer: SearchLayer
-    $scoreTable: ScoreTable
+    $explorer: Explorer
   }
 }

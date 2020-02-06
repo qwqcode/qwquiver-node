@@ -321,6 +321,7 @@ export default class Card extends Vue {}
 }
 
 .actions__item {
+  user-select: none;
   line-height: 30px;
   text-align: center;
   cursor: pointer;

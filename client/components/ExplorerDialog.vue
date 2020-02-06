@@ -21,7 +21,7 @@ import $ from 'jquery'
 @Component({
   components: { Dialog }
 })
-export default class ScoreTableDialog extends Vue {
+export default class ExplorerDialog extends Vue {
   isShow: boolean = false
 
   @Prop({
@@ -125,18 +125,41 @@ export default class ScoreTableDialog extends Vue {
         box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
 
         &:after {
-          font-family: Material-Design-Iconic-Font;
+          font-family: 'Material-Design-Iconic-Font';
           position: absolute;
           top: -10px;
           right: 0;
           font-size: 18px;
-          color: #f78787;
-          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.19);
+          color: #ff6b68;
         }
 
         &:not(.active):after {
           content: '\f15b';
         }
+      }
+    }
+
+    .checkbox {
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      font-size: 15px;
+      margin-left: 10px;
+      transition: background-color .2s, border .2s, box-shadow .2s, color .2s;
+      padding: 6px 20px;
+      border-radius: 3px;
+      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
+      &:hover {
+        color: var(--mainColor);
+      }
+
+      &.is-on:before {
+        content: '\f26b';
+        font-family: 'Material-Design-Iconic-Font';
+        padding-right: 8px;
+        border-right: 1px solid #F4F4F4;
+        margin-right: 8px;
       }
     }
 

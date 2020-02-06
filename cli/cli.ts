@@ -44,6 +44,7 @@ importBar.addArgument('fileName', {
   help: '表格文件的完整路径'
 })
 importBar.addArgument('--force', { action: 'storeTrue', help: '强制执行 (忽略所有警告)' })
+importBar.addArgument('--always-calc', { action: 'storeTrue', help: '总是计算 (丢弃表格原有的 总分/排名 数据)' })
 const storeStr = { action: 'store', type: 'string' }
 importBar.addArgument(['-n', '--name'], { dest: 'Name', help: '考试名称 (唯一值)', ...storeStr })
 importBar.addArgument(['-l', '--label'], { dest: 'Label', help: '考试显示名称', ...storeStr })
@@ -57,5 +58,5 @@ if (args.action === 'import' && !!args.fileName) {
   ['Name', 'Label', 'Date', 'Grp', 'Note'].forEach((key) => {
     if (args[key]) examConf[key] = args[key]
   })
-  ExcelImporter(args.fileName, examConf, args.force)
+  ExcelImporter(args.fileName, examConf, args.force, args.always_calc)
 }

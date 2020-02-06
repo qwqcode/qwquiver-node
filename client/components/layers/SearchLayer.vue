@@ -46,6 +46,8 @@
                 >{{ school }}</span>
               </div>
               <div class="list class-list">
+                <span class="school-name">{{ sc.openedSchool }}</span>
+                <span class="item" @click="scSubmit(sc.openedSchool)">全校成绩</span>
                 <span
                   v-for="className in scOpenedSchoolClassList"
                   :key="className"
@@ -144,16 +146,17 @@ export default class SearchLayer extends Vue {
   submit () {
     const reqParams: ApiT.QueryParams = { where: JSON.stringify(this.searchData), page: 1 }
     if (this.searchExamName) reqParams.exam = this.searchExamName
-    this.$scoreTable.fetchData(reqParams)
+    this.$explorer.fetchData(reqParams)
     this.$nextTick(() => {
       this.searchData = {}
       this.hide()
     })
   }
 
-  scSubmit (schoolName: string, className: string) {
+  scSubmit (schoolName: string, className?: string) {
     this.searchData.SCHOOL = schoolName
-    this.searchData.CLASS = className
+    if (className)
+      this.searchData.CLASS = className
     this.submit()
   }
 
@@ -195,7 +198,7 @@ export default class SearchLayer extends Vue {
     this.isShow = true
     this.bindOutClickEvt()
     this.focusSearchInput()
-    this.searchExamName = this.$scoreTable.curtExamName
+    this.searchExamName = this.$explorer.curtExamName
   }
 
   hide () {
@@ -266,6 +269,7 @@ export default class SearchLayer extends Vue {
     padding: 5px 20px;
     margin-left: -3px;
     cursor: pointer;
+    transition: background-color .2s,border .2s,box-shadow .2s, color .2s;
 
     &.active {
       z-index: 2;
@@ -295,6 +299,7 @@ export default class SearchLayer extends Vue {
     cursor: pointer;
     box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
     user-select: none;
+    transition: background-color .2s,border .2s,box-shadow .2s;
 
     &:hover {
       background: #fff
@@ -384,21 +389,22 @@ export default class SearchLayer extends Vue {
             padding: 10px 21px;
             border-left: 1px solid transparent;
             cursor: pointer;
+            transition: background-color .2s,border .2s,box-shadow .2s;
 
             &.active {
               color: var(--mainColor);
+            }
 
-              &:before {
-                background: var(--mainColor);
-                content: ' ';
-                position: absolute;
-                left: -2px;
-                top: 10px;
-                height: calc(100% - 20px);
-                width: 3px;
-                box-shadow: 0 2px 15px rgba(0, 131, 255, 0.22);
-                border-left: 1px solid var(--mainColor);
-              }
+            &.active:before, &:hover:before {
+              background: var(--mainColor);
+              content: ' ';
+              position: absolute;
+              left: -2px;
+              top: 10px;
+              height: calc(100% - 20px);
+              width: 3px;
+              box-shadow: 0 2px 15px rgba(0, 131, 255, 0.22);
+              border-left: 1px solid var(--mainColor);
             }
           }
         }
@@ -407,6 +413,13 @@ export default class SearchLayer extends Vue {
           flex: 70%;
           padding: 8px 13px 8px 23px;
 
+          .school-name {
+            display: block;
+            font-size: 14px;
+            padding: 8px 8px 11px 8px;
+            border-bottom: 1px solid #F4F4F4;
+          }
+
           .item {
             background: #f4f4f4;
             border-radius: 40px;
@@ -414,6 +427,7 @@ export default class SearchLayer extends Vue {
             padding: 5px 13px;
             margin: 14px 10px 0 0;
             cursor: pointer;
+            transition: background-color .2s,border .2s,box-shadow .2s;
 
             &:hover {
               color: var(--mainColor);

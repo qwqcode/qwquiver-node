@@ -22,17 +22,17 @@
           <i class="zmdi zmdi-download"></i>
           <span>下载</span>
         </span>
-        <span class="actions__item" @click="printScoreTable()">
+        <span class="actions__item" @click="printTable()">
           <i class="zmdi zmdi-print"></i>
           <span>打印</span>
-        </span>
-        <span class="actions__item" @click="$refs.tableCtrlDialog.show()">
-          <i class="zmdi zmdi-format-paint"></i>
-          <span>表格调整</span>
         </span>
         <span class="actions__item" @click="$refs.tableDataCounterDialog.show()">
           <i class="zmdi zmdi-flash"></i>
           <span>平均分</span>
+        </span>
+        <span class="actions__item" @click="$refs.settingDialog.show()">
+          <i class="zmdi zmdi-format-paint"></i>
+          <span>设置</span>
         </span>
         <span class="actions__item" @click="toggleFullScreen()">
           <i class="zmdi" :class="`zmdi-fullscreen${isFullScreen ? '-exit' : ''}`"></i>
@@ -77,10 +77,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, i) in data.list" :key="i" :data-wlytable-item-id="i">
+              <tr v-for="(item, i) in data.list" :key="i">
                 <th v-for="f in ViewFieldList" :key="f">
                   <span v-if="f === 'NAME'" class="clickable-text" @click="goChart(item)">{{ item[f] }}</span>
                   <span v-else>{{ item[f] }}</span>
+                  <span v-if="fieldRankOn && TargetRankField.includes(f)">[{{ item[`${f}_RANK`] || '' }}]</span>
                 </th>
               </tr>
             </tbody>
@@ -129,7 +130,7 @@
     </div>
     <LoadingLayer ref="tLoading" />
 
-    <ScoreTableDialog ref="tableCtrlDialog" title="表格显示调整">
+    <ExplorerDialog ref="settingDialog" title="设置">
       <div v-if="data !== null" class="table-ctrl-dialog">
           <span class="dialog-label">点按下列方块来 显示 / 隐藏 字段</span>
           <div class="field-list">
@@ -141,6 +142,11 @@
               @click="toggleFieldView(f)"
             >{{ transField(f) }}</span>
           </div>
+          <span class="dialog-label">附加数据</span>
+          <div class="checkbox"
+            :class="{ 'is-on': fieldRankOn }"
+            @click="() => { fieldRankOn = !fieldRankOn }"
+          >显示字段排名</div>
           <span class="dialog-label">每页显示项目数量 （数字不宜过大）</span>
           <div class="page-per-show">
             <input type="number" class="page-per-show-input" placeholder="每页显示数" min="1" :value="data.pageSize" />
@@ -152,9 +158,9 @@
             <span class="font-size-plus" @click="adjustTableFontSize(+2)">+</span>
           </div>
       </div>
-    </ScoreTableDialog>
+    </ExplorerDialog>
 
-    <ScoreTableDialog ref="tableDataDownloadDialog" title="保存数据为电子表格">
+    <ExplorerDialog ref="tableDataDownloadDialog" title="保存数据为电子表格">
       <span v-if="data !== null">
         <span class="dialog-label">保存 "{{ data.examConf.Label }}" 的 "{{ data.dataDesc }}" 为电子表格</span>
         <span class="dialog-btn" data-dialog-func="save-now">保存 仅第 {{ data.page }} 页 数据</span>
@@ -162,9 +168,9 @@
         <span class="dialog-label">保存 "{{ data.examConf.Label }}" 的全部数据为电子表格</span>
         <span class="dialog-btn" data-dialog-func="save-noPaging">保存 全部成绩</span>
       </span>
-    </ScoreTableDialog>
+    </ExplorerDialog>
 
-    <ScoreTableDialog ref="tableDataCounterDialog" title="数据统计">
+    <ExplorerDialog ref="tableDataCounterDialog" title="数据统计">
       <div v-if="data !== null" class="table-data-counter">
       <span class="dialog-label">数据 "{{ data.dataDesc }}" 平均值</span>
       <span v-for="(avg, f) in data.avgList" :key="f" class="data-item">
@@ -172,7 +178,7 @@
         <span class="data-value">{{ avg }}</span>
       </span>
       </div>
-    </ScoreTableDialog>
+    </ExplorerDialog>
   </div>
 </template>
 
@@ -180,7 +186,7 @@
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import LoadingLayer from './LoadingLayer.vue'
 import SelectFloater from './SelectFloater.vue'
-import ScoreTableDialog from './ScoreTableDialog.vue'
+import ExplorerDialog from './ExplorerDialog.vue'
 import F, { ScoreData } from '~~/server/Field'
 import * as FG from '~~/server/Field/Grp'
 import * as ApiT from '~~/server/ApiTypes'
@@ -188,16 +194,18 @@ import $ from 'jquery'
 import _ from 'lodash'
 
 @Component({
-  components: { LoadingLayer, ScoreTableDialog, SelectFloater }
+  components: { LoadingLayer, ExplorerDialog, SelectFloater }
 })
-export default class ScoreTable extends Vue {
+export default class Explorer extends Vue {
   data: ApiT.QueryData | null = null
   params: ApiT.QueryParams | null = null
   isFullScreen = false
   loading!: LoadingLayer
 
+  fieldRankOn = false
+
   created () {
-    Vue.prototype.$scoreTable = this
+    Vue.prototype.$explorer = this
   }
 
   mounted () {
@@ -227,12 +235,26 @@ export default class ScoreTable extends Vue {
     const rawFieldList = this.data.fieldList
     const fieldList: F[] = []
 
-    _.forEach(_.union(FG.F_MAIN, FG.F_SUBJ, FG.F_EXT_RANK, FG.F_EXT_SUM), (fieldName) => {
+    _.forEach(_.union(FG.F_MAIN, FG.F_SUBJ, FG.F_EXT_SUM), (fieldName) => {
       if (rawFieldList.includes(fieldName))
         fieldList.push(fieldName)
     })
 
     return fieldList
+  }
+
+  get TargetRankField () {
+    return FG.F_TARGET_RANK
+  }
+
+  get paramsWhereObj (): {[f in F]?: any} {
+    if (!this.params) return {}
+    if (!this.params.where) return {}
+    try {
+      return JSON.parse(this.params.where)
+    } catch {
+      return {}
+    }
   }
 
   /** 显示的字段 */
@@ -241,12 +263,18 @@ export default class ScoreTable extends Vue {
   }
 
   /** 隐藏的字段 */
-  HideFieldList: F[] = [...FG.F_EXT_RANK, ...FG.F_EXT_SUM]
+  HideFieldList: F[] = [...FG.F_EXT_SUM]
 
   toggleFieldView (field: F) {
-    if (this.HideFieldList.includes(field)) {
+    const isShow = !this.HideFieldList.includes(field)
+    this.setFieldView(field, !isShow)
+  }
+
+  setFieldView (field: F, show: boolean) {
+    if (show && this.HideFieldList.includes(field)) {
       this.HideFieldList.splice(this.HideFieldList.indexOf(field), 1)
-    } else {
+    }
+    if (!show && !this.HideFieldList.includes(field)) {
       this.HideFieldList.push(field)
     }
     this.$nextTick(() => {
@@ -297,6 +325,19 @@ export default class ScoreTable extends Vue {
           this.params.exam = this.data.examConf.Name
         }
         this.$app.Conf = this.data.initConf
+      }
+
+      // 自动设置字段 显示/隐藏
+      const whereObj = this.paramsWhereObj
+      if (whereObj.CLASS && whereObj.SCHOOL) {
+        this.setFieldView(F.SCHOOL, false)
+        this.setFieldView(F.CLASS, false)
+      } else if (whereObj.SCHOOL) {
+        this.setFieldView(F.SCHOOL, false)
+        this.setFieldView(F.CLASS, true)
+      } else {
+        this.setFieldView(F.SCHOOL, true)
+        this.setFieldView(F.CLASS, true)
       }
     } else {
       this.$notify.error(resp.msg)
@@ -486,7 +527,7 @@ export default class ScoreTable extends Vue {
     })
   }
 
-  printScoreTable () {
+  printTable () {
     ($(this.$refs.tBody).find('table').css('margin-top', '') as any).print({
       globalStyles: true,
       mediaPrint: false,
@@ -497,6 +538,13 @@ export default class ScoreTable extends Vue {
       `
     })
     this.adjustDisplay()
+  }
+
+  @Watch('fieldRankOn')
+  onFieldRankOnChanged (isOn: boolean) {
+    this.$nextTick(() => {
+      this.adjustDisplay()
+    })
   }
 }
 </script>

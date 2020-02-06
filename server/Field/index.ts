@@ -4,6 +4,7 @@ enum F {
   /** 学校 */ SCHOOL = 'SCHOOL',
   /** 班级 */ CLASS = 'CLASS',
 
+  /** 总分 */ SCORED = 'SCORED',
   /** 排名 */ RANK = 'RANK',
 
   /** 语文 */ YW = 'YW',
@@ -18,40 +19,37 @@ enum F {
   /** 历史 */ LS = 'LS',
   /** 地理 */ DL = 'DL',
 
+  /** 主科 (语+数+英) */
+  ZK = 'ZK',
   /** 理综 (物+化+生) */
   LZ = 'LZ',
   /** 文综 (政+历+地) */
   WZ = 'WZ',
 
-  /** 主科 (语+数+英) */
-  ZK = 'ZK',
   /** 理科 (语数英+理综) */
   LK = 'LK',
   /** 文科（语数英+理综） */
   WK = 'WK',
 
-  /** 主排 */ ZK_RANK = 'ZK_RANK',
-  /** 文排 */ LK_RANK = 'LK_RANK',
-  /** 理排 */ WK_RANK = 'WK_RANK',
-  /** 理综排 */ LZ_RANK = 'LZ_RANK',
-  /** 文综排 */ WZ_RANK = 'WZ_RANK',
-
-  /** 总分 */
-  SCORED = 'SCORED',
+  /** 校排名 */
+  SCHOOL_RANK = 'SCHOOL_RANK',
+  /** 班排名 */
+  CLASS_RANK = 'CLASS_RANK',
 }
 
 type _ScoreData = {
   [F.NAME]: string, [F.ID]: string,
-  [F.SCHOOL]: string, [F.CLASS]: string,
+  [F.SCHOOL]: string,
+  [F.CLASS]: string,
   [F.SCORED]: number,
   [F.RANK]: number,
-  [F.LK_RANK]: number,
-  [F.WK_RANK]: number,
   [F.YW]: number, [F.SX]: number, [F.YY]: number,
   [F.WL]: number, [F.HX]: number, [F.SW]: number,
   [F.ZZ]: number, [F.LS]: number, [F.DL]: number,
   [F.LZ]: number, [F.WZ]: number,
   [F.ZK]: number, [F.LK]: number, [F.WK]: number
+
+  [F.SCHOOL_RANK]: number, [F.CLASS_RANK]: number
 }
 
 export default F

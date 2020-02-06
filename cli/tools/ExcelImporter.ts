@@ -9,9 +9,8 @@ import Database, { DATA_PATH, ExamMapFile, DataUpdatedSignFile } from '../../ser
 import Exam, { EXAM_CONF } from '../../server/Exam'
 import DataStore from 'nedb'
 import _ from 'lodash'
-import inquirer from 'inquirer'
 
-export default async function ExcelImporter (srcFileName: string, examConf?: any, force: boolean = false) {
+export default async function ExcelImporter (srcFileName: string, examConf?: any, force: boolean = false, alwaysCalc: boolean = false) {
   if (!fs.existsSync(srcFileName)) {
     consola.error(`表格文件不存在，路径有误`)
     process.exit()
@@ -23,7 +22,7 @@ export default async function ExcelImporter (srcFileName: string, examConf?: any
     process.exit()
   }
 
-  const dataFileName = path.join(DATA_PATH, `${examName}.tb`)
+  const dataFileName = path.join(DATA_PATH, `${examName}.qexam`)
 
   if (fs.existsSync(dataFileName)) {
     if (!force) {
@@ -50,25 +49,45 @@ export default async function ExcelImporter (srcFileName: string, examConf?: any
     })
   })
 
-  // 读取数据
+  // 读取数据 & 导入数组
   let tableDataItems: ScoreData[] = []
-  xlsData.forEach((rowValues, rowIndex) => {
-    if (rowIndex === 0) return
-    const dataItem: any = {}
-    _.forEach(xlsFieldToColPos, (colPos: number, fieldName: string) => {
-      dataItem[fieldName] = rowValues[colPos] || null
+  xlsData.forEach((rowValues, rowPos) => { // ↓↓↓ 表格 纵向遍历 ↓↓↓
+    if (rowPos === 0) return // 忽略首行
+    const itemName = rowValues[xlsFieldToColPos[F.NAME]]
+    if (!itemName) return // 舍弃 NAME 未知的数据
+
+    const dataItem: any = {} // →→→ 表格 横向遍历 →→→
+    _.forEach(xlsFieldToColPos, (colPos: number, field: string) => {
+      const value = rowValues[colPos]
+      if (F_SUBJ.includes(field as F)) { // 若为分数字段
+        if (isNaN(Number(value))) { // 若科目分数数据不为数字
+          consola.error(`表格存在问题 `
+          + `行:${rowPos+1}, 列:${colPos+1}, NAME:"${itemName}", F:"${field}" `
+          + `科目分数不是数字，请检查并修改为数字后继续导入`)
+          process.exit(1)
+        }
+
+        dataItem[field] = Number(value)
+      } else {
+        dataItem[field] = value || null
+      }
     })
     tableDataItems.push(dataItem)
   })
 
-  // 总分 & 排名
+  // 计算总分
+  calcSumFieldFor(F_SUBJ, F.SCORED)
+
+  // 按成绩从大到小排序
+  tableDataItems = _.sortBy(tableDataItems, o => -o[F.SCORED])
 
   /**
    * 计算 求和数据字段
    * @param dataSrcFields 求和数据源 字段
-   * @param targetField 求和结果 字段
+   * @param targetField 求和计算结果 字段
    */
-  function calcSumFieldFor (dataSrcFields: F[], targetField: F) {
+  function calcSumFieldFor (dataSrcFields: F[], targetField: F|string) {
+    if (xlsFields.includes(targetField as F) && !alwaysCalc) return // 若字段已存在于源表格文件中
     if (!dataSrcFields || dataSrcFields.length <= 0) return
     _.forEach(tableDataItems, (item) => {
       let scoreSum = 0
@@ -79,23 +98,23 @@ export default async function ExcelImporter (srcFileName: string, examConf?: any
       (item as any)[targetField] = scoreSum
     })
   }
-  calcSumFieldFor(F_SUBJ, F.SCORED)
-  calcRankFieldFor(F.SCORED, F.RANK)
 
   /**
-   * 计算 排名
-   * @param sumDataField 分数字段
-   * @param targetField 排名结果字段
+   * 计算 分数的排名
+   * @param scoreSrcField 分数 字段
+   * @param targetField 排名计算结果 字段
+   * @param dataItemsSortSrc 作用的 dataItems (给定作用范围)
    */
-  function calcRankFieldFor (scoreSrcField: F, targetField: F) {
+  function _calcRankFieldFor (scoreSrcField: F, targetField: F|string, dataItemsSortSrc: ScoreData[] = tableDataItems) {
+    if (xlsFields.includes(targetField as F) && !alwaysCalc) return // 若字段已存在于源表格文件中
     let tRank = 1
     let tScored = -1
     let tSameNum = 1
-    const itemsSorted = _.sortBy(tableDataItems, o => -o[scoreSrcField]) // 从大到小排序
     const applyRankData = (item: any, rank: Number) => {
       const rawItem: any = _.find(tableDataItems, o => o === item)
       rawItem[targetField] = rank
     }
+    const itemsSorted = _.sortBy(dataItemsSortSrc, o => -o[scoreSrcField]) // 从大到小排序
     _.forEach(itemsSorted, (item: any) => {
       const itemScore = Number(item[scoreSrcField])
       if (tScored === -1) {
@@ -116,27 +135,71 @@ export default async function ExcelImporter (srcFileName: string, examConf?: any
     })
   }
 
-  // 文科 & 理科 & 理综 & 文综
+  /**
+   * 计算 相对于 全部数据/学校/班级 的分数排名
+   * @param scoreSrcField 分数 字段
+   * @todo 效率不太高，待优化
+   */
+  function calcRankFieldFor (scoreSrcField: F) {
+    {
+      // 相对于 全部数据 的排名
+      const targetField = (scoreSrcField !== F.SCORED) ? `${scoreSrcField}_RANK` : F.RANK
+      _calcRankFieldFor(scoreSrcField, targetField)
+    }
+    const schoolClasses: {[school: string]: string[]} = {} // 顺便建立学校班级列表
+    _.forEach(tableDataItems, (item) => {
+      if (!item.NAME || !item.CLASS || !item.SCHOOL) return
+      // 相对于 学校 的排名
+      if (schoolClasses[item.SCHOOL] === undefined) {
+        const targetField = (scoreSrcField !== F.SCORED) ? `${scoreSrcField}_SCHOOL_RANK` : F.SCHOOL_RANK
+        _calcRankFieldFor(scoreSrcField, targetField, _.filter(tableDataItems, {
+          [F.SCHOOL]: item.SCHOOL
+        }))
+        schoolClasses[item.SCHOOL] = []
+      }
+      // 相对于 班级 的排名
+      if (!schoolClasses[item.SCHOOL].includes(item.CLASS)) {
+        const targetField = (scoreSrcField !== F.SCORED) ? `${scoreSrcField}_CLASS_RANK` : F.CLASS_RANK
+        _calcRankFieldFor(scoreSrcField, targetField, _.filter(tableDataItems, {
+          [F.SCHOOL]: item.SCHOOL,
+          [F.CLASS]: item.CLASS
+        }))
+        schoolClasses[item.SCHOOL].push(item.CLASS)
+      }
+    })
+  }
+
+  // 计算总分相对于 全部数据/学校/班级 的排名
+  calcRankFieldFor(F.SCORED)
+
+  // 单科排名
+  const dataSubjects = _.intersection(xlsFields, F_SUBJ) as F[]
+  _.forEach(dataSubjects, (subj) => {
+    // 学校 & 班级 单科排名
+    calcRankFieldFor(subj)
+  })
+
+  // 主科, 文科, 理科, 理综, 文综 => SUM & RANK
   const dataZkSubjects = _.intersection(xlsFields, F_ZK_SUBJ) as F[]
   const dataLzSubjects = _.intersection(xlsFields, F_LZ_SUBJ) as F[]
   const dataWzSubjects = _.intersection(xlsFields, F_WZ_SUBJ) as F[]
   if (dataZkSubjects.length > 0) {
     calcSumFieldFor(dataZkSubjects, F.ZK)
-    calcRankFieldFor(F.ZK, F.ZK_RANK)
+    calcRankFieldFor(F.ZK)
   }
   if (dataLzSubjects.length > 0) {
     calcSumFieldFor(dataLzSubjects, F.LZ)
-    calcRankFieldFor(F.LZ, F.LZ_RANK)
+    calcRankFieldFor(F.LZ)
 
     calcSumFieldFor(_.union(dataLzSubjects, dataZkSubjects), F.LK)
-    calcRankFieldFor(F.LK, F.LK_RANK)
+    calcRankFieldFor(F.LK)
   }
   if (dataWzSubjects.length > 0) {
     calcSumFieldFor(dataWzSubjects, F.WZ)
-    calcRankFieldFor(F.WZ, F.WZ_RANK)
+    calcRankFieldFor(F.WZ)
 
     calcSumFieldFor(_.union(dataWzSubjects, dataZkSubjects), F.WK)
-    calcRankFieldFor(F.WK, F.WK_RANK)
+    calcRankFieldFor(F.WK)
   }
 
   // 总分从大到小排序

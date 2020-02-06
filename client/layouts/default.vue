@@ -9,7 +9,7 @@
       <Sidebar />
 
       <div :class="{ 'full': contFullScreen }" class="main-content-area">
-        <ScoreTable v-show="$route.name === 'index'" />
+        <Explorer v-show="$route.name === 'index'" />
         <nuxt class="content-inner" />
       </div>
     </div>
@@ -22,14 +22,14 @@ import * as ApiT from '~~/server/ApiTypes'
 import F from '~~/server/Field'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
-import ScoreTable from '@/components/ScoreTable.vue'
+import Explorer from '@/components/Explorer.vue'
 import CardCSSCode from '@/components/Card.vue'
 import Layers from '@/components/layers'
 import $ from 'jquery'
 import _ from 'lodash'
 
 @Component({
-  components: { TopHeader, Sidebar, ScoreTable, ...Layers, CardCSSCode }
+  components: { TopHeader, Sidebar, Explorer, ...Layers, CardCSSCode }
 })
 export default class Default extends Vue {
   Conf: ApiT.ConfData|null = null
@@ -43,11 +43,11 @@ export default class Default extends Vue {
     // 载入最新的考试数据
     let params: ApiT.QueryParams = {
       page: 1,
-      pageSize: 50,
+      pageSize: 60,
       init: true
     }
     if (this.$route.query) params = { ...params, ...this.$route.query }
-    this.$scoreTable.onRouteQueryChanged(params as ApiT.QueryParams)
+    this.$explorer.onRouteQueryChanged(params as ApiT.QueryParams)
   }
 
   get ExamMap () {

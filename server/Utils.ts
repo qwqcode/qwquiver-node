@@ -9,7 +9,7 @@ import _ from 'lodash'
 export default class Utils {
   static getPaginatedData (items: any[], page: number, pageSize: number): ApiT.PaginatedData {
     const pg = page || 1
-    const pgSize = pageSize || 100
+    const pgSize = pageSize || 60
     const offset = (pg - 1) * pgSize
     const pagedItems = _.drop(items, offset).slice(0, pgSize)
 

@@ -40,23 +40,17 @@ a {
 
 /* anim */
 .anim-fade-in {
-  -webkit-animation-name: fadeIn;
   animation-name: fadeIn;
-  -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
-  -webkit-animation-duration: .3s;
   animation-duration: .3s;
 }
 
 .anim-fade-out {
-  -webkit-animation-name: fadeOut;
   animation-name: fadeOut;
-  -webkit-animation-duration: .2s;
   animation-duration: .2s;
 }
 
 .anim-flash {
-  -webkit-animation-name: flash;
   animation-name: flash
 }
 
@@ -101,11 +95,8 @@ a {
   top: -1px;
   left: -1px;
   margin: auto;
-  -webkit-animation-name: flash;
   animation-name: flash;
-  -webkit-animation-duration: 2s;
   animation-duration: 2s;
-  -webkit-animation-fill-mode: both;
   animation-fill-mode: both;
   animation-iteration-count: infinite;
 }
