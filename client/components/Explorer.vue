@@ -1,5 +1,5 @@
 <template>
-  <div class="score-table card" :class="{ 'card--fullscreen': isFullScreen }">
+  <div class="explorer card" :class="{ 'card-fullscreen': isFullScreen }">
     <div v-if="data !== null" class="card-header">
       <h2 ref="tTitle" class="card-title">
         <span class="exam-label" @click="$refs.examSelect.show($event.target)">{{ data.examConf.Label }}</span> - {{ data.dataDesc }}
@@ -13,43 +13,44 @@
         :selected="curtExamName"
         :change="switchExam" />
       <small class="card-subtitle">{{ data.total }} 人</small>
+      <!-- Actions -->
       <div class="actions">
-        <span class="actions__item show-top-badge" @click="$searchLayer.toggle()">
-          <i class="zmdi zmdi-search"></i>
+        <span class="item show-top-badge" @click="$searchLayer.toggle()">
+          <i class="zmdi zmdi-search" />
           <span>搜索</span>
         </span>
-        <span class="actions__item" @click="$refs.tableDataDownloadDialog.show()">
-          <i class="zmdi zmdi-download"></i>
+        <span class="item" @click="$refs.tableDataDownloadDialog.show()">
+          <i class="zmdi zmdi-download" />
           <span>下载</span>
         </span>
-        <span class="actions__item" @click="printTable()">
-          <i class="zmdi zmdi-print"></i>
+        <span class="item" @click="printTable()">
+          <i class="zmdi zmdi-print" />
           <span>打印</span>
         </span>
-        <span class="actions__item" @click="$refs.tableDataCounterDialog.show()">
-          <i class="zmdi zmdi-flash"></i>
+        <span class="item" @click="$refs.tableDataCounterDialog.show()">
+          <i class="zmdi zmdi-flash" />
           <span>平均分</span>
         </span>
-        <span class="actions__item" @click="$refs.settingDialog.show()">
-          <i class="zmdi zmdi-format-paint"></i>
+        <span class="item" @click="$refs.settingDialog.show()">
+          <i class="zmdi zmdi-format-paint" />
           <span>设置</span>
         </span>
-        <span class="actions__item" @click="toggleFullScreen()">
-          <i class="zmdi" :class="`zmdi-fullscreen${isFullScreen ? '-exit' : ''}`"></i>
+        <span class="item" @click="toggleFullScreen()">
+          <i :class="`zmdi zmdi-fullscreen${isFullScreen ? '-exit' : ''}`" />
           <span>{{ !isFullScreen ? '全屏显示' : '退出全屏' }}</span>
         </span>
       </div>
     </div>
-    <div v-if="data !== null" class="card-block" style="padding: 0;">
+
+    <div v-if="data !== null" ref="tWrap" class="score-table-wrap" :class="{'field-rank-on': fieldRankOn}" style="padding: 0;">
       <div
         ref="tContainer"
         class="wly-table-container"
         data-toggle="wlyTable"
-        style="opacity: 1; height: 371px; padding-bottom: 55px;"
       >
         <!-- Table -->
         <div ref="tHeader" class="wly-table-header">
-          <table class="table table-striped table-hover" style="width: 1868.29px;">
+          <table class="table table-striped table-hover">
             <thead>
               <tr>
                 <th
@@ -77,57 +78,57 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, i) in data.list" :key="i">
+              <tr v-for="(item, i) in data.list" :key="i" class="table-item">
                 <th v-for="f in ViewFieldList" :key="f">
                   <span v-if="f === 'NAME'" class="clickable-text" @click="goChart(item)">{{ item[f] }}</span>
                   <span v-else>{{ item[f] }}</span>
-                  <span v-if="fieldRankOn && TargetRankField.includes(f)">[{{ item[`${f}_RANK`] || '' }}]</span>
+                  <span v-if="fieldRankOn && TargetRankField.includes(f)" class="field-rank-print print-only">[{{ getItemFieldRank(item, f) }}]</span>
+                  <span v-if="fieldRankOn && TargetRankField.includes(f)" class="field-rank anim-fade-in" @click="fieldRankClickSwitch()">{{ getItemFieldRank(item, f) }}</span>
                 </th>
               </tr>
             </tbody>
           </table>
         </div>
-
-
-        <div ref="tPagination" class="wly-table-pagination">
-          <div class="paginate-simple">
+      </div>
+      <div ref="tPagination" class="wly-table-pagination">
+        <div class="paginate-simple">
+          <a
+            v-if="!visiblePageBtn.includes(1)"
+            class="paginate-button"
+            title="第一页"
+            @click="switchPage(1)"
+          >1</a>
+          <a
+            :class="{ disabled: data.page-1 <= 0 }"
+            class="paginate-button previous"
+            title="上一页"
+            @click="switchPage(data.page-1)"
+          ></a>
+          <span>
             <a
-              v-if="!visiblePageBtn.includes(1)"
+              v-for="(pageNum, i) in visiblePageBtn"
+              :key="i"
+              :class="{ current: pageNum === data.page }"
               class="paginate-button"
-              title="第一页"
-              @click="switchPage(1)"
-            >1</a>
-            <a
-              :class="{ disabled: data.page-1 <= 0 }"
-              class="paginate-button previous"
-              title="上一页"
-              @click="switchPage(data.page-1)"
-            ></a>
-            <span>
-              <a
-                v-for="(pageNum, i) in visiblePageBtn"
-                :key="i"
-                :class="{ current: pageNum === data.page }"
-                class="paginate-button"
-                @click="switchPage(pageNum)"
-              >{{ pageNum }}</a>
-            </span>
-            <a
-              :class="{ disabled: data.page+1 > data.lastPage }"
-              class="paginate-button next"
-              title="下一页"
-              @click="switchPage(data.page+1)"
-            ></a>
-            <a
-              v-if="!visiblePageBtn.includes(data.lastPage)"
-              class="paginate-button"
-              title="最后一页"
-              @click="switchPage(data.lastPage)"
-            >{{ data.lastPage }}</a>
-          </div>
+              @click="switchPage(pageNum)"
+            >{{ pageNum }}</a>
+          </span>
+          <a
+            :class="{ disabled: data.page+1 > data.lastPage }"
+            class="paginate-button next"
+            title="下一页"
+            @click="switchPage(data.page+1)"
+          ></a>
+          <a
+            v-if="!visiblePageBtn.includes(data.lastPage)"
+            class="paginate-button"
+            title="最后一页"
+            @click="switchPage(data.lastPage)"
+          >{{ data.lastPage }}</a>
         </div>
       </div>
     </div>
+
     <LoadingLayer ref="tLoading" />
 
     <ExplorerDialog ref="settingDialog" title="设置">
@@ -137,16 +138,26 @@
             <span
               v-for="(f, i) in FieldList"
               :key="i"
-              :class="{ 'active': !HideFieldList.includes(f) }"
-              class="field-item"
+              :class="{ 'active': HideFieldList.includes(f) }"
+              class="checkbox"
               @click="toggleFieldView(f)"
             >{{ transField(f) }}</span>
+            <div
+              class="checkbox"
+              :class="{ 'active': !fieldRankOn }"
+              @click="() => { fieldRankOn = !fieldRankOn }"
+            >单科排名</div>
           </div>
-          <span class="dialog-label">附加数据</span>
-          <div class="checkbox"
-            :class="{ 'is-on': fieldRankOn }"
-            @click="() => { fieldRankOn = !fieldRankOn }"
-          >显示字段排名</div>
+          <div v-if="fieldRankOn" class="anim-fade-in">
+            <span class="dialog-label">单科排名 视角</span>
+            <div
+              v-for="(name, type) in FieldRankTypeNameDict"
+              :key="type"
+              class="checkbox"
+              :class="{ 'active': fieldRankType === type }"
+              @click="() => { fieldRankType = type }"
+            >{{ name }}</div>
+          </div>
           <span class="dialog-label">每页显示项目数量 （数字不宜过大）</span>
           <div class="page-per-show">
             <input type="number" class="page-per-show-input" placeholder="每页显示数" min="1" :value="data.pageSize" />
@@ -193,6 +204,8 @@ import * as ApiT from '~~/server/ApiTypes'
 import $ from 'jquery'
 import _ from 'lodash'
 
+type FIELD_RANK_TYPE = 'all'|'class'|'school'
+
 @Component({
   components: { LoadingLayer, ExplorerDialog, SelectFloater }
 })
@@ -201,8 +214,6 @@ export default class Explorer extends Vue {
   params: ApiT.QueryParams | null = null
   isFullScreen = false
   loading!: LoadingLayer
-
-  fieldRankOn = false
 
   created () {
     Vue.prototype.$explorer = this
@@ -289,6 +300,7 @@ export default class Explorer extends Vue {
       $(this.$refs.tBody).bind('scroll.table-scroll-sync', (e) => {
         $(this.$refs.tHeader).scrollLeft(($(e.target) as any).scrollLeft())
         $(this.$refs.tHeader).scrollTop(($(e.target) as any).scrollTop())
+        this.setFullScreen(true)
       })
     })
 
@@ -348,11 +360,11 @@ export default class Explorer extends Vue {
     const reqParams: ApiT.QueryParams = !initialize
       ? { ...this.params, ...params }
       : params
-    this.$router.push({ query: reqParams as any })
+    this.$router.push({ name: 'index', query: reqParams as any })
   }
 
   switchExam (examName: string, initialize = false) {
-    this.fetchData({ exam: examName }, initialize)
+    this.fetchData({ exam: examName, page: 1 }, initialize)
   }
 
   switchPage (pageNum: number) {
@@ -387,6 +399,7 @@ export default class Explorer extends Vue {
   }
 
   setFullScreen (val: boolean) {
+    if (this.isFullScreen === val) return
     if (val === true) {
       this.$topHeader.hide()
       // this.browserRequestFullScreen(document.body)
@@ -431,34 +444,20 @@ export default class Explorer extends Vue {
   }
 
   adjustDisplay () {
-    const topNavbar = $('.main-navbar')
-
+    const wrapEl = $(this.$refs.tWrap)
     const containerEl = $(this.$refs.tContainer)
     const headerEl = $(this.$refs.tHeader)
     const headerTableEl = headerEl.find('table')
     const bodyEl = $(this.$refs.tBody)
     const bodyTableEl = bodyEl.find('table')
     const paginationEl = $(this.$refs.tPagination)
-
-    let tableHeight = this.$app.getContentHeight()
-    if (this.isFullScreen)
-      tableHeight = tableHeight + (topNavbar.outerHeight(true) || 0)
-
-    containerEl.css('height', tableHeight + 'px')
-
-    if (!this.isFullScreen)
-      containerEl.css('padding-bottom', paginationEl.outerHeight() || 0)
-    else
-      containerEl.css(
-        'padding-bottom',
-        (paginationEl.outerHeight() || 0) - (headerEl.outerHeight() || 0) + 20
-      )
-
     // 设置悬浮样式
+    const curtHeadHeight = (bodyEl.find('table thead').outerHeight() || 1) + 2
     bodyTableEl.css(
       'margin-top',
-      `-${(bodyEl.find('table thead').outerHeight() || 1) + 2}px`
+      `-${curtHeadHeight}px`
     )
+    bodyEl.css('height', `calc(100% - ${curtHeadHeight}px)`)
 
     // 获取 body table thead tr 中每个 th 对象
     const bodyThItems = bodyTableEl.find(
@@ -500,16 +499,29 @@ export default class Explorer extends Vue {
     return sortType === 1 ? 'sort-asc' : 'sort-desc'
   }
 
-  getFieldItemHoverTitle (fieldName: F) {
+  getFieldItemHoverTitle (f: F) {
     if (!this.data) return ''
-    const sortType = this.data.sortList[fieldName]
-    let title = `依 总分 ${sortType === -1 ? '升序' : '降序'} `
-    if (typeof sortType === 'number')
+    const sortType = this.data.sortList[f]
+    let title = `依 ${this.transField(f)} ${sortType === -1 ? '升序' : '降序'} `
+    if (sortType !== undefined)
       title += `[当前为 ${sortType === -1 ? '降序' : '升序'}]`
     return title
   }
 
-  goChart (item: {[k in F]?: string}) {
+  getItemFieldRank (item: ScoreData, f: F) {
+    if (!FG.F_TARGET_RANK.includes(f)) return null
+    let rankF
+    if (this.fieldRankType === 'all') {
+      rankF = `${f}_RANK`
+    } else if (this.fieldRankType === 'class') {
+      rankF = `${f}_CLASS_RANK`
+    } else if (this.fieldRankType === 'school') {
+      rankF = `${f}_SCHOOL_RANK`
+    }
+    return item[rankF] ? Number(item[rankF]) : null
+  }
+
+  goChart (item: ScoreData) {
     if (this.data === null) return
 
     const query: ApiT.ChartParams = {
@@ -540,17 +552,41 @@ export default class Explorer extends Vue {
     this.adjustDisplay()
   }
 
+  fieldRankOn = false
+  fieldRankType: FIELD_RANK_TYPE = 'all'
+  FieldRankTypeNameDict: {[key in FIELD_RANK_TYPE]: string} = {'all': '总', 'class': '班级', 'school': '学校'}
+  get FieldRankTypes () { return Object.keys(this.FieldRankTypeNameDict) as FIELD_RANK_TYPE[] }
+
   @Watch('fieldRankOn')
   onFieldRankOnChanged (isOn: boolean) {
+    if (isOn === true) { // 打开
+      this.fieldRankType = 'all'
+      this.fieldRankClickNum = 1
+    }
     this.$nextTick(() => {
       this.adjustDisplay()
     })
+  }
+
+  @Watch('fieldRankType')
+  onFieldRankTypeChanged (type: FIELD_RANK_TYPE) {
+    this.$notify.clearAll()
+    this.$notify.info(`单科排名 已调整为 “${this.FieldRankTypeNameDict[type]}视角”`)
+  }
+
+  fieldRankClickNum = 1
+  fieldRankClickSwitch () {
+    this.fieldRankType = this.FieldRankTypes[this.fieldRankClickNum]
+    this.fieldRankClickNum++
+    if (this.fieldRankClickNum >= this.FieldRankTypes.length) {
+      this.fieldRankClickNum = 0
+    }
   }
 }
 </script>
 
 <style scoped lang="scss">
-.score-table {
+.explorer {
   .card-title {
     .exam-label {
       cursor: pointer;
@@ -561,10 +597,97 @@ export default class Explorer extends Vue {
   }
 }
 
+.card-fullscreen {
+  .score-table-wrap {
+    height: calc(100vh - #{87px});
+  }
+}
+
 /* table */
+.score-table-wrap {
+  height: calc(100vh - #{55px+87px+15px*2});
+  display: flex;
+  flex-direction: column;
+}
+
+.wly-table-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.wly-table-header {
+  overflow: hidden;
+  /* margin-right: 17px; */
+
+  table {
+    margin-bottom: 0;
+  }
+  thead {
+    overflow: hidden;
+
+    th span {
+      cursor: pointer;
+
+      &.select {
+        color: var(--mainColor);
+      }
+
+      &.sort-desc,
+      &.sort-asc {
+        color: var(--mainColor);
+
+        &:after {
+          font-family: Material-Design-Iconic-Font;
+          position: absolute;
+          width: 20px;
+        }
+      }
+
+      &.sort-desc:after {
+        content: '\f2fe';
+      }
+      &.sort-asc:after {
+        content: '\f303';
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 559px) {
+  .wly-table-header thead th span.select:after {
+    position: initial;
+  }
+}
+
+@media print {
+  .wly-table-header thead th span.select {
+    color: #fff;
+  }
+
+  .wly-table-header thead th span:after {
+    display: none;
+  }
+}
+
+.wly-table-pagination {
+  overflow: hidden;
+  background: #fff;
+  height: 55px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 table {
   border-spacing: 0;
   border-collapse: collapse;
+}
+
+.field-rank-on {
+  table tr th {
+    padding-right: 30px !important;
+  }
 }
 
 .table {
@@ -573,10 +696,38 @@ table {
   margin-bottom: 20px;
   font-size: 15px;
 
-  .clickable-text {
-    cursor: pointer;
-    &:hover {
-      color: var(--mainColor)
+  tr.table-item {
+    position: relative;
+    th {
+      position: relative;
+    }
+
+    .clickable-text {
+      cursor: pointer;
+      &:hover {
+        color: var(--mainColor)
+      }
+    }
+
+    .field-rank {
+      position: absolute;
+      font-size: 12px;
+      margin-left: 6px;
+      background: #F4F4F4;
+      padding: 0 6px;
+      border-radius: 2px;
+      margin-top: 2px;
+      animation-duration: 0.5s;
+      cursor: pointer;
+      user-select: none;
+
+      &:hover {
+        background: #eeeeee;
+      }
+    }
+
+    .field-rank-print {
+      font-size: 13px;
     }
   }
 }
@@ -639,101 +790,9 @@ table {
   background: #fcfcfc;
 }
 
-/* add sorting icons to gridview sort links */
-a.asc:after,
-a.desc:after {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  padding-left: 5px;
-}
-
-a.asc:after {
-  content: /*"\e113"*/ '\e151';
-}
-
-a.desc:after {
-  content: /*"\e114"*/ '\e152';
-}
-
-.sort-numerical a.asc:after {
-  content: '\e153';
-}
-
-.sort-numerical a.desc:after {
-  content: '\e154';
-}
-
-.sort-ordinal a.asc:after {
-  content: '\e155';
-}
-
-.sort-ordinal a.desc:after {
-  content: '\e156';
-}
-
 .table th,
 label {
   font-weight: 500;
-}
-
-.wly-table-container {
-  position: relative;
-  clear: both;
-}
-
-.wly-table-header {
-  overflow: hidden;
-  /* margin-right: 17px; */
-
-  table {
-    margin-bottom: 0;
-  }
-  thead {
-    overflow: hidden;
-
-    th span {
-      cursor: pointer;
-
-      &.sort-desc,
-      &.sort-asc {
-        color: var(--mainColor);
-
-        &:after {
-          font-family: Material-Design-Iconic-Font;
-          position: absolute;
-          width: 20px;
-        }
-      }
-
-      &.sort-desc:after {
-        content: '\f2fe';
-      }
-      &.sort-asc:after {
-        content: '\f303';
-      }
-    }
-  }
-}
-
-@media screen and (max-width: 559px) {
-  .wly-table-header thead th span.select:after {
-    position: initial;
-  }
-}
-
-@media print {
-  .wly-table-header thead th span.select {
-    color: #fff;
-  }
-
-  .wly-table-header thead th span:after {
-    display: none;
-  }
 }
 
 .wly-table-body {
@@ -766,15 +825,10 @@ label {
   }
 }
 
-.wly-table-pagination {
-  overflow: hidden;
-  background: #fff;
-}
-
 /* pagination */
 .paginate-simple {
-  text-align: center;
-  padding: 10px 0;
+  display: flex;
+  flex-direction: row;
 
   .paginate-button {
     background-color: #efefef;

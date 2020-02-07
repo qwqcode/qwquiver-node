@@ -78,8 +78,10 @@ export default class Sidebar extends Vue {
 </script>
 
 <style scoped lang="scss">
+$sidebarWidth: 230px;
+$sidebarWideWidth: 255px;
 .sidebar {
-  width: 270px;
+  width: $sidebarWidth;
   position: fixed;
   z-index: 3;
   left: 0;
@@ -91,8 +93,21 @@ export default class Sidebar extends Vue {
   transform: translate(0px, 0px);
   transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
 
+  @include mq(wide) {
+    width: $sidebarWideWidth;
+  }
+
+  @include mq(mobile, tablet) {
+    width: 100%;
+    text-align: center;
+  }
+
   &.sidebar.hide {
     transform: translate(-270px, 0px) !important;
+
+    @include mq(mobile, tablet) {
+      transform: translate(-100%, 0px) !important;
+    }
   }
 }
 
@@ -103,20 +118,26 @@ export default class Sidebar extends Vue {
   padding: 0 20px;
 
   &.link-list {
-    padding: 0;
+    $gutterLR: 25px;
+    $gutterWideLR: 30px;
+    padding: 5px 0;
 
     .list-label {
       position: relative;
       color: #919da8;
       font-size: 13px;
       font-weight: normal;
-      padding: 10px 25px;
-      margin: 15px 0 10px 0;
+      padding: 7px $gutterLR;
+      margin: 13px 0 5px 0;
+
+      @include mq(wide) {
+        padding: 9px $gutterWideLR;
+      }
     }
 
     ul {
       padding: 0;
-      margin: 10px 0;
+      margin: 0;
       list-style: none;
     }
 
@@ -129,9 +150,12 @@ export default class Sidebar extends Vue {
       & > span {
         text-decoration: none;
         color: #82888d;
-        padding: 10px 25px;
+        padding: 9px $gutterLR;
         display: block;
         cursor: pointer;
+        @include mq(wide) {
+          padding: 9px $gutterWideLR;
+        }
 
         & > i {
           margin-right: 5px;
@@ -142,5 +166,4 @@ export default class Sidebar extends Vue {
     }
   }
 }
-
 </style>

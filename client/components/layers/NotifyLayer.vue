@@ -52,6 +52,10 @@ export default class NotifyLayer extends Vue {
   info (message: string) {
     this.add(message, 'i')
   }
+
+  clearAll () {
+    this.$el.innerHTML = ''
+  }
 }
 </script>
 

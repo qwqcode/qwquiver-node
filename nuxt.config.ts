@@ -36,6 +36,14 @@ const config: Configuration = {
     'material-design-iconic-font/dist/css/material-design-iconic-font.min.css',
     'vue2-animate/dist/vue2-animate.min.css'
   ],
+  styleResources: {
+    scss: [
+      'sass-mq',
+      '@/assets/css/_variables.scss',
+      '@/assets/css/_functions.scss',
+      '@/assets/css/_mixins.scss'
+    ],
+  },
   /*
    ** Plugins to load before mounting the App
    */
@@ -55,7 +63,8 @@ const config: Configuration = {
    */
   modules: [
     // Doc: https://axios.nuxtjs.org/usage
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    '@nuxtjs/style-resources'
   ],
   /*
    ** Axios module configuration

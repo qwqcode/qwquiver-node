@@ -1,7 +1,7 @@
 import F from './'
 
 /** 主要字段 */
-export const F_MAIN = [F.NAME, F.ID, F.SCHOOL, F.CLASS, F.RANK, F.SCORED]
+export const F_MAIN = [F.RANK, F.NAME, F.ID, F.SCHOOL_RANK, F.SCHOOL, F.CLASS_RANK, F.CLASS, F.SCORED]
 
 /** 主科 */
 export const F_ZK_SUBJ = [F.YW, F.SX, F.YY]

@@ -290,7 +290,6 @@ export default class SearchLayer extends Vue {
     margin-left: auto;
     margin-right: 10px;
     margin-top: 6px;
-    color: var(--mainColor);
     background: rgba(255, 255, 255, 0.8);
     height: 24px;
     line-height: 24px;
@@ -430,8 +429,7 @@ export default class SearchLayer extends Vue {
             transition: background-color .2s,border .2s,box-shadow .2s;
 
             &:hover {
-              color: var(--mainColor);
-              background: rgba(66, 133, 244, 0.12);
+              background: #EEE;
             }
           }
         }

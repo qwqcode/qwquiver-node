@@ -1,5 +1,5 @@
 <template>
-  <Dialog ref="dialog">
+  <Dialog ref="dialog" :show-close-btn="false">
     <div class="table-dialog">
       <div class="dialog-title">
         <span class="title-text">{{ title }}</span>
@@ -89,7 +89,7 @@ export default class ExplorerDialog extends Vue {
     border-left: 1px solid var(--mainColor);
     padding-left: 15px;
     border-radius: 0;
-    margin-top: 30px;
+    margin-top: 10px;
     margin-bottom: 10px;
 
     &:first-child {
@@ -113,53 +113,31 @@ export default class ExplorerDialog extends Vue {
   }
 
   .table-ctrl-dialog {
-    .field-list {
-      .field-item {
-        user-select: none;
-        position: relative;
-        display: inline-block;
-        padding: 6px 20px;
-        cursor: pointer;
-        margin: 0 0 13px 10px;
-        border-radius: 3px;
-        box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
+    .checkbox {
+      user-select: none;
+      position: relative;
+      display: inline-block;
+      padding: 6px 20px;
+      cursor: pointer;
+      margin: 0 0 13px 10px;
+      border-radius: 3px;
+      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
 
-        &:after {
-          font-family: 'Material-Design-Iconic-Font';
-          position: absolute;
-          top: -10px;
-          right: 0;
-          font-size: 18px;
-          color: #ff6b68;
-        }
-
-        &:not(.active):after {
-          content: '\f15b';
-        }
+      &.active:after {
+        content: '\f26b';
+        color: var(--mainColor);
+        position: absolute;
+        font-family: 'Material-Design-Iconic-Font';
+        right: 0px;
+        top: -12px;
+        font-size: 19px;
       }
     }
 
-    .checkbox {
-      display: inline-block;
-      position: relative;
-      cursor: pointer;
-      user-select: none;
-      font-size: 15px;
-      margin-left: 10px;
-      transition: background-color .2s, border .2s, box-shadow .2s, color .2s;
-      padding: 6px 20px;
-      border-radius: 3px;
-      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
-      &:hover {
-        color: var(--mainColor);
-      }
-
-      &.is-on:before {
-        content: '\f26b';
-        font-family: 'Material-Design-Iconic-Font';
-        padding-right: 8px;
-        border-right: 1px solid #F4F4F4;
-        margin-right: 8px;
+    .field-list {
+      .checkbox.active:after {
+        color: #ff6b68;
+        content: '\f15b';
       }
     }
 
@@ -169,7 +147,8 @@ export default class ExplorerDialog extends Vue {
       background: #fbfbfb;
       padding: 5px 15px;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
       text-align: center;
       outline: none;
       transition: 0.3s all;
@@ -184,38 +163,36 @@ export default class ExplorerDialog extends Vue {
       justify-content: center;
       flex-direction: row;
       text-align: center;
-      font-size: 18px;
+      font-size: 17px;
       margin-top: 15px;
-    }
 
-    .table-font-size-control .font-size-minus {
-      border-radius: 5px 0 0 5px;
-    }
+      & > span {
+        box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
+        padding: 3px 15px;
+        transition: 0.3s all;
+      }
 
-    .table-font-size-control .font-size-value {
-      font-weight: bold;
-    }
+      .font-size-minus, .font-size-plus {
+        cursor: pointer;
+        user-select: none;
 
-    .table-font-size-control .font-size-plus {
-      border-radius: 0 5px 5px 0;
-    }
+        &:hover {
+          box-shadow: 0 1px 4px rgba(177, 177, 177, 0.58);
+          color: #2196f3;
+        }
+      }
 
-    .table-font-size-control > span {
-      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.36);
-      padding: 4px 17px;
-      transition: 0.3s all;
-    }
+      .font-size-minus {
+        border-radius: 3px 0 0 3px;
+      }
 
-    .table-font-size-control .font-size-minus,
-    .table-font-size-control .font-size-plus {
-      cursor: pointer;
-      user-select: none;
-    }
+      .font-size-value {
+        font-weight: bold;
+      }
 
-    .table-font-size-control .font-size-minus:hover,
-    .table-font-size-control .font-size-plus:hover {
-      box-shadow: 0 1px 4px rgba(177, 177, 177, 0.58);
-      color: #2196f3;
+      .font-size-plus {
+        border-radius: 0 3px 3px 0;
+      }
     }
   }
 

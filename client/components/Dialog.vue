@@ -85,7 +85,7 @@ export default class Dialog extends Vue {
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
-    background: rgba(105, 105, 105, 0.65);
+    background: rgba(0, 0, 0, 0.35);
 
     & > .body {
       padding: 0 10vw;

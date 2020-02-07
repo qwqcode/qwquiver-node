@@ -1,6 +1,5 @@
 <template>
   <div>
-    <CardCSSCode />
     <!-- eslint-disable-next-line vue/attributes-order -->
     <component v-for="layer in AllLayersNameList" :is="layer" :key="layer" />
     <TopHeader />
@@ -8,7 +7,7 @@
     <div class="wrap">
       <Sidebar />
 
-      <div :class="{ 'full': contFullScreen }" class="main-content-area">
+      <div :class="{ 'full': contFullScreen }" class="main-cont-area">
         <Explorer v-show="$route.name === 'index'" />
         <nuxt class="content-inner" />
       </div>
@@ -23,13 +22,12 @@ import F from '~~/server/Field'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Explorer from '@/components/Explorer.vue'
-import CardCSSCode from '@/components/Card.vue'
 import Layers from '@/components/layers'
 import $ from 'jquery'
 import _ from 'lodash'
 
 @Component({
-  components: { TopHeader, Sidebar, Explorer, ...Layers, CardCSSCode }
+  components: { TopHeader, Sidebar, Explorer, ...Layers }
 })
 export default class Default extends Vue {
   Conf: ApiT.ConfData|null = null
@@ -97,65 +95,4 @@ export default class Default extends Vue {
 }
 </script>
 
-<style scoped lang="scss">
-.wrap {
-  min-height: 100%;
-  height: auto;
-  margin: 0 auto;
-  padding: 0;
-  transition: filter 0.15s ease-in-out;
-
-  & > .container {
-    padding: 70px 15px 20px;
-  }
-
-  .main-content-area {
-    position: relative;
-    $paddingLR: 25px;
-    padding-left: 300px;
-    padding-right: $paddingLR;
-    padding-top: 80px;
-    padding-bottom: 10px;
-
-    &.full {
-      padding-left: $paddingLR !important;
-    }
-  }
-}
-
-/* table-fixed */
-.wly-table-container {
-  position: relative;
-  clear: both;
-}
-
-.wly-table-header {
-  overflow: hidden;
-  /* margin-right: 17px; */
-}
-
-.wly-table-header table {
-  margin-bottom: 0;
-}
-
-.wly-table-header thead {
-  overflow: hidden;
-}
-
-.wly-table-header thead th {
-}
-
-.wly-table-header thead th span {
-  cursor: pointer;
-}
-
-.wly-table-header thead th span.select {
-  color: var(--mainColor);
-}
-
-.wly-table-header thead th span.select:after {
-  font-family: Material-Design-Iconic-Font;
-  position: absolute;
-  width: 20px;
-}
-</style>
+<style scoped lang="scss"></style>
