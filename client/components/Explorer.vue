@@ -15,7 +15,7 @@
       <small class="card-subtitle">{{ data.total }} 人</small>
       <!-- Actions -->
       <div class="actions">
-        <span class="item show-top-badge" @click="$searchLayer.toggle()">
+        <span class="item show-top-badge" :class="{ 'active': !!$searchLayer.isShow }" @click="$searchLayer.toggle()">
           <i class="zmdi zmdi-search" />
           <span>搜索</span>
         </span>
@@ -30,6 +30,10 @@
         <span class="item" @click="$refs.tableDataCounterDialog.show()">
           <i class="zmdi zmdi-flash" />
           <span>平均分</span>
+        </span>
+        <span v-if="fieldRankOn" class="item active anim-fade-in" @click="$refs.settingDialog.show()">
+          <i class="zmdi zmdi-swap-vertical" />
+          <span>单科排名 [{{ FieldRankTypeNameDict[fieldRankType] }}视角]</span>
         </span>
         <span class="item" @click="$refs.settingDialog.show()">
           <i class="zmdi zmdi-format-paint" />
@@ -83,7 +87,12 @@
                   <span v-if="f === 'NAME'" class="clickable-text" @click="goChart(item)">{{ item[f] }}</span>
                   <span v-else>{{ item[f] }}</span>
                   <span v-if="fieldRankOn && TargetRankField.includes(f)" class="field-rank-print print-only">[{{ getItemFieldRank(item, f) }}]</span>
-                  <span v-if="fieldRankOn && TargetRankField.includes(f)" class="field-rank anim-fade-in" @click="fieldRankClickSwitch()">{{ getItemFieldRank(item, f) }}</span>
+                  <span
+                    v-if="fieldRankOn && TargetRankField.includes(f)"
+                    class="field-rank anim-fade-in"
+                    :title="getItemFieldRankHoverTitle(item, f)"
+                    @click="fieldRankClickSwitch()"
+                  >{{ getItemFieldRank(item, f) }}</span>
                 </th>
               </tr>
             </tbody>
@@ -155,7 +164,7 @@
               :key="type"
               class="checkbox"
               :class="{ 'active': fieldRankType === type }"
-              @click="() => { fieldRankType = type }"
+              @click="setFieldRankType(type)"
             >{{ name }}</div>
           </div>
           <span class="dialog-label">每页显示项目数量 （数字不宜过大）</span>
@@ -195,6 +204,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
+import { Persist } from 'vue-local-storage-decorator'
 import LoadingLayer from './LoadingLayer.vue'
 import SelectFloater from './SelectFloater.vue'
 import ExplorerDialog from './ExplorerDialog.vue'
@@ -207,6 +217,7 @@ import _ from 'lodash'
 type FIELD_RANK_TYPE = 'all'|'class'|'school'
 
 @Component({
+  name: 'explorer',
   components: { LoadingLayer, ExplorerDialog, SelectFloater }
 })
 export default class Explorer extends Vue {
@@ -238,15 +249,27 @@ export default class Explorer extends Vue {
     return this.data ? this.data.examConf.Label || null : null
   }
 
+  /** 隐藏的字段 */
+  HideFieldList: F[] = [F.SCHOOL_RANK, F.CLASS_RANK,...FG.F_EXT_SUM]
+
   /** 全部字段 */
   get FieldList () {
     if (!this.data) return []
+    const rawFieldList = this.data.fieldList // 源字段
 
-    // 构建有序字段名列表
-    const rawFieldList = this.data.fieldList
+    // 允许出现的字段
+    let F_MAIN = FG.F_MAIN
+    if (this.isClassSearchMode) {
+      F_MAIN = FG.F_MAIN_CLASS
+    } else if (this.isSchoolSearchMode) {
+      F_MAIN = FG.F_MAIN_SCHOOL
+    }
+
+    const allowFields = [...F_MAIN, ...FG.F_SUBJ, ...FG.F_EXT_SUM]
+
+    // 构建有序的字段 & 排除字段
     const fieldList: F[] = []
-
-    _.forEach(_.union(FG.F_MAIN, FG.F_SUBJ, FG.F_EXT_SUM), (fieldName) => {
+    _.forEach(allowFields, (fieldName) => {
       if (rawFieldList.includes(fieldName))
         fieldList.push(fieldName)
     })
@@ -273,21 +296,25 @@ export default class Explorer extends Vue {
     return _.filter(this.FieldList, (f) => !this.HideFieldList.includes(f))
   }
 
-  /** 隐藏的字段 */
-  HideFieldList: F[] = [...FG.F_EXT_SUM]
-
   toggleFieldView (field: F) {
     const isShow = !this.HideFieldList.includes(field)
     this.setFieldView(field, !isShow)
   }
 
-  setFieldView (field: F, show: boolean) {
-    if (show && this.HideFieldList.includes(field)) {
-      this.HideFieldList.splice(this.HideFieldList.indexOf(field), 1)
+  setFieldView (field: F|F[]|{[f in F]?: boolean}, show?: boolean) {
+    const setOneFieldView = (field: F, show: boolean) => {
+      if (show && this.HideFieldList.includes(field)) {
+        this.HideFieldList.splice(this.HideFieldList.indexOf(field), 1)
+      }
+      if (!show && !this.HideFieldList.includes(field)) {
+        this.HideFieldList.push(field)
+      }
     }
-    if (!show && !this.HideFieldList.includes(field)) {
-      this.HideFieldList.push(field)
-    }
+    if (_.isArray(field) && show !== undefined) {
+      _.forEach(field, (f) => { setOneFieldView(f, show) })
+    } else if (_.isObject(field)) {
+      _.forEach(field, (show, f) => { setOneFieldView(f as F, show) })
+    } else if(show !== undefined) setOneFieldView(field, show)
     this.$nextTick(() => {
       this.adjustDisplay()
     })
@@ -341,15 +368,24 @@ export default class Explorer extends Vue {
 
       // 自动设置字段 显示/隐藏
       const whereObj = this.paramsWhereObj
-      if (whereObj.CLASS && whereObj.SCHOOL) {
-        this.setFieldView(F.SCHOOL, false)
-        this.setFieldView(F.CLASS, false)
-      } else if (whereObj.SCHOOL) {
-        this.setFieldView(F.SCHOOL, false)
-        this.setFieldView(F.CLASS, true)
+      if (this.isClassSearchMode) {
+        this.setFieldView({
+          [F.SCHOOL]: false, [F.SCHOOL_RANK]: false,
+          [F.CLASS]: false, [F.CLASS_RANK]: true
+        })
+        this.fieldRankType = 'class'
+      } else if (this.isSchoolSearchMode) {
+        this.setFieldView({
+          [F.SCHOOL]: false, [F.SCHOOL_RANK]: true,
+          [F.CLASS]: true, [F.CLASS_RANK]: false
+        })
+        this.fieldRankType = 'school'
       } else {
-        this.setFieldView(F.SCHOOL, true)
-        this.setFieldView(F.CLASS, true)
+        this.setFieldView({
+          [F.SCHOOL]: true, [F.SCHOOL_RANK]: false,
+          [F.CLASS]: true, [F.CLASS_RANK]: false
+        })
+        this.fieldRankType = 'all'
       }
     } else {
       this.$notify.error(resp.msg)
@@ -380,6 +416,20 @@ export default class Explorer extends Vue {
         [fieldName]: this.data.sortList[fieldName] === -1 ? 1 : -1
       })
     })
+  }
+
+  get isNormalSearchMode () {
+    const whereObj = this.paramsWhereObj
+    return (!whereObj.CLASS && !whereObj.SCHOOL)
+  }
+
+  get isClassSearchMode () {
+    const whereObj = this.paramsWhereObj
+    return (!!whereObj.CLASS && !!whereObj.SCHOOL)
+  }
+
+  get isSchoolSearchMode () {
+    return !!this.paramsWhereObj.SCHOOL
   }
 
   get visiblePageBtn () {
@@ -508,19 +558,6 @@ export default class Explorer extends Vue {
     return title
   }
 
-  getItemFieldRank (item: ScoreData, f: F) {
-    if (!FG.F_TARGET_RANK.includes(f)) return null
-    let rankF
-    if (this.fieldRankType === 'all') {
-      rankF = `${f}_RANK`
-    } else if (this.fieldRankType === 'class') {
-      rankF = `${f}_CLASS_RANK`
-    } else if (this.fieldRankType === 'school') {
-      rankF = `${f}_SCHOOL_RANK`
-    }
-    return item[rankF] ? Number(item[rankF]) : null
-  }
-
   goChart (item: ScoreData) {
     if (this.data === null) return
 
@@ -552,35 +589,63 @@ export default class Explorer extends Vue {
     this.adjustDisplay()
   }
 
-  fieldRankOn = false
+  @Persist()
+  fieldRankOn = true
   fieldRankType: FIELD_RANK_TYPE = 'all'
   FieldRankTypeNameDict: {[key in FIELD_RANK_TYPE]: string} = {'all': '总', 'class': '班级', 'school': '学校'}
   get FieldRankTypes () { return Object.keys(this.FieldRankTypeNameDict) as FIELD_RANK_TYPE[] }
 
   @Watch('fieldRankOn')
   onFieldRankOnChanged (isOn: boolean) {
-    if (isOn === true) { // 打开
-      this.fieldRankType = 'all'
-      this.fieldRankClickNum = 1
+    if (isOn === true) { // 打开初始化
+      if (this.isClassSearchMode) {
+        this.fieldRankType = 'class'
+      } else if (this.isSchoolSearchMode) {
+        this.fieldRankType = 'school'
+      } else {
+        this.fieldRankType = 'all'
+      }
     }
     this.$nextTick(() => {
       this.adjustDisplay()
     })
   }
 
-  @Watch('fieldRankType')
-  onFieldRankTypeChanged (type: FIELD_RANK_TYPE) {
+  setFieldRankType (type: FIELD_RANK_TYPE) {
+    this.fieldRankType = type
     this.$notify.clearAll()
     this.$notify.info(`单科排名 已调整为 “${this.FieldRankTypeNameDict[type]}视角”`)
   }
 
-  fieldRankClickNum = 1
   fieldRankClickSwitch () {
-    this.fieldRankType = this.FieldRankTypes[this.fieldRankClickNum]
-    this.fieldRankClickNum++
-    if (this.fieldRankClickNum >= this.FieldRankTypes.length) {
-      this.fieldRankClickNum = 0
+    const allTypes = this.FieldRankTypes
+    let nxtTypeIndex = allTypes.indexOf(this.fieldRankType) + 1
+    if (nxtTypeIndex >= allTypes.length) nxtTypeIndex = 0
+    this.setFieldRankType(this.FieldRankTypes[nxtTypeIndex])
+  }
+
+  getItemFieldRank (item: ScoreData, f: F) {
+    if (!FG.F_TARGET_RANK.includes(f)) return null
+    let rankF
+    if (this.fieldRankType === 'all') {
+      rankF = `${f}_RANK`
+    } else if (this.fieldRankType === 'class') {
+      rankF = `${f}_CLASS_RANK`
+    } else if (this.fieldRankType === 'school') {
+      rankF = `${f}_SCHOOL_RANK`
     }
+    // School & Class Field
+    if (f === F.SCHOOL) {
+      rankF = `SCHOOL_RANK`
+    } else if (f === F.CLASS) {
+      rankF = `CLASS_RANK`
+    }
+
+    return item[rankF] ? Number(item[rankF]) : null
+  }
+
+  getItemFieldRankHoverTitle (item: ScoreData, f: F) {
+    return `“${item.NAME}” 的 “${this.transField(f)}” 在 “${this.FieldRankTypeNameDict[this.fieldRankType]}成绩” 中排 ${this.getItemFieldRank(item, f)}名`
   }
 }
 </script>

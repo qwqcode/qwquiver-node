@@ -48,7 +48,8 @@ const config: Configuration = {
    ** Plugins to load before mounting the App
    */
   plugins: [
-    '@/plugins/jQuery.print.min.js'
+    '@/plugins/jQuery.print.min.js',
+    '@/plugins/vue-local-storage-decorator.ts'
   ],
   /*
    ** Nuxt.js dev-modules

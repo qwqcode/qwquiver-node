@@ -237,7 +237,7 @@ a {
         margin-right: 20px;
       }
 
-      &:hover {
+      &:hover, &.active {
         color: var(--mainColor);
       }
 
