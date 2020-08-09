@@ -205,14 +205,14 @@
 <script lang="ts">
 import { Component, Vue, Prop, Watch } from 'nuxt-property-decorator'
 import { Persist } from 'vue-local-storage-decorator'
+import $ from 'jquery'
+import _ from 'lodash'
 import LoadingLayer from './LoadingLayer.vue'
 import SelectFloater from './SelectFloater.vue'
 import ExplorerDialog from './ExplorerDialog.vue'
 import F, { ScoreData } from '~~/server/Field'
 import * as FG from '~~/server/Field/Grp'
 import * as ApiT from '~~/server/ApiTypes'
-import $ from 'jquery'
-import _ from 'lodash'
 
 type FIELD_RANK_TYPE = 'all'|'class'|'school'
 

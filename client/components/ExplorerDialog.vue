@@ -15,8 +15,8 @@
 <script lang="ts">
 import Vue from 'vue'
 import { Prop, Component } from 'vue-property-decorator'
-import Dialog from './Dialog.vue'
 import $ from 'jquery'
+import Dialog from './Dialog.vue'
 
 @Component({
   components: { Dialog }

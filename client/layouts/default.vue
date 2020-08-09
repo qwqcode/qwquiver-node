@@ -17,14 +17,14 @@
 
 <script lang="ts">
 import { Component, Vue } from 'nuxt-property-decorator'
+import $ from 'jquery'
+import _ from 'lodash'
 import * as ApiT from '~~/server/ApiTypes'
 import F from '~~/server/Field'
 import TopHeader from '@/components/TopHeader.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Explorer from '@/components/Explorer.vue'
 import Layers from '@/components/layers'
-import $ from 'jquery'
-import _ from 'lodash'
 
 @Component({
   components: { TopHeader, Sidebar, Explorer, ...Layers }

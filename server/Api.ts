@@ -1,3 +1,5 @@
+import express, { Router, Request, Response } from 'express'
+import _ from 'lodash'
 import F, { ScoreData } from './Field'
 import { F_SUBJ, F_EXT_SUM } from './Field/Grp'
 import { FTrans, transDict as FTD } from './Field/Trans'
@@ -5,8 +7,6 @@ import * as ApiT from './ApiTypes'
 import Utils from './Utils'
 import Database from './Database'
 import Exam, { EXAM_CONF } from './Exam'
-import express, { Router, Request, Response } from 'express'
-import _ from 'lodash'
 
 const api: Router = Router()
 
@@ -79,7 +79,7 @@ api.get('/query', (req, res) => {
   const pageSize: number = !!pageSizeStr && !isNaN(pageSizeStr) ? Number(pageSizeStr) : 50
   const page: number = !!pageStr && !isNaN(pageStr) ? Number(pageStr) : 1
 
-  exam.Data.find(condList).sort(sortList).exec((err: Error, rawData) => {
+  exam.Data.find(condList).sort(sortList).exec((err: Error | null, rawData) => {
     if (err) Utils.error(res, `数据获取错误 ${err.message}`)
 
     const data: ScoreData[] = [] // 成绩数据

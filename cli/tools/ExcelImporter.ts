@@ -2,13 +2,13 @@ import path from 'path'
 import fs from 'fs'
 import consola from 'consola'
 import * as XLSX from 'xlsx'
+import DataStore from 'nedb'
+import _ from 'lodash'
 import F, { ScoreData } from '../../server/Field'
 import { transDict as FT } from '../../server/Field/Trans'
 import { F_ALL, F_SUBJ, F_ZK_SUBJ, F_LZ_SUBJ, F_WZ_SUBJ } from '../../server/Field/Grp'
 import Database, { DATA_PATH, ExamMapFile, DataUpdatedSignFile } from '../../server/Database'
 import Exam, { EXAM_CONF } from '../../server/Exam'
-import DataStore from 'nedb'
-import _ from 'lodash'
 
 export default async function ExcelImporter (srcFileName: string, examConf?: any, force: boolean = false, alwaysCalc: boolean = false) {
   if (!fs.existsSync(srcFileName)) {

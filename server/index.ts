@@ -1,7 +1,7 @@
-import Database from './Database'
-import Api from './Api'
 import express from 'express'
 import _ from 'lodash'
+import Database from './Database'
+import Api from './Api'
 
 // 初始化数据库
 Database.init()

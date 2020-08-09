@@ -2,11 +2,11 @@ import path from 'path'
 import fs from 'fs'
 import consola from 'consola'
 import chokidar from 'chokidar'
+import _ from 'lodash'
+import DataStore from 'nedb'
 import F, { ScoreData } from './Field'
 import Utils from './Utils'
 import Exam, { EXAM_CONF } from './Exam'
-import _ from 'lodash'
-import DataStore from 'nedb'
 
 /** 数据根目录 */
 export const DATA_PATH = path.resolve(__dirname, '../storage/data')

@@ -1,10 +1,10 @@
+import express, { Router, Request, Response } from 'express'
+import _ from 'lodash'
 import Database from './Database'
 import F from './Field'
 import { F_SUBJ } from './Field/Grp'
 import Exam, { EXAM_CONF } from './Exam'
 import * as ApiT from './ApiTypes'
-import express, { Router, Request, Response } from 'express'
-import _ from 'lodash'
 
 export default class Utils {
   static getPaginatedData (items: any[], page: number, pageSize: number): ApiT.PaginatedData {

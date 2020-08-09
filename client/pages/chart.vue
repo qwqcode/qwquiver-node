@@ -9,10 +9,10 @@
 import { Component, Vue, Watch } from 'nuxt-property-decorator'
 import G2 from '@antv/g2'
 import DataSet from '@antv/data-set'
-import LoadingLayer from '../components/LoadingLayer.vue'
-import * as ApiT from '~~/server/ApiTypes'
 import _ from 'lodash'
 import $ from 'jquery'
+import LoadingLayer from '../components/LoadingLayer.vue'
+import * as ApiT from '~~/server/ApiTypes'
 
 @Component({
   components: { LoadingLayer }

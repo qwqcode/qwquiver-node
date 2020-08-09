@@ -1,10 +1,10 @@
 import path from 'path'
 import consola from 'consola'
+import DataStore from 'nedb'
+import _ from 'lodash'
 import F, { ScoreData } from './Field'
 import { F_SUBJ, F_ALL, F_TARGET_RANK } from './Field/Grp'
 import { DATA_PATH } from './Database'
-import DataStore from 'nedb'
-import _ from 'lodash'
 
 /** 数据表配置 */
 export interface EXAM_CONF {

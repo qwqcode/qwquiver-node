@@ -65,12 +65,12 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'nuxt-property-decorator'
+import _ from 'lodash'
+import $ from 'jquery'
 import LoadingLayer from '../LoadingLayer.vue'
 import SelectFloater from '../SelectFloater.vue'
 import F, { ScoreData } from '~~/server/Field'
 import * as ApiT from '~~/server/ApiTypes'
-import _ from 'lodash'
-import $ from 'jquery'
 
 type SearchType = 'Name' | 'SchoolClass'
 const OutClickEvtName = 'click.SearchLayer'
